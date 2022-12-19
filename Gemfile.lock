@@ -1,0 +1,26 @@
+GEM
+  specs:
+    base64 (0.1.1)
+    bip-schnorr (0.4.0)
+      ecdsa (~> 1.2.0)
+    ecdsa (1.2.0)
+    event_emitter (0.2.6)
+    highline (2.0.3)
+    json (2.6.2)
+    websocket (1.2.9)
+    websocket-client-simple (0.6.0)
+      event_emitter
+      websocket
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  base64
+  bip-schnorr
+  highline
+  json
+  websocket-client-simple
+
+BUNDLED WITH
+   1.17.2
