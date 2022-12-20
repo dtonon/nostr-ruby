@@ -90,15 +90,11 @@ class Nostr
   end
 
   def build_note_event(text, channel_key = nil)
-    event_created_at = Time.now.utc.to_i
-    event_type = channel_key ? 42 : 1
-    event_tags = channel_key ? [['e', channel_key]] : []
-
     event = {
       "pubkey": @public_key,
-      "created_at": event_created_at,
-      "kind": event_type,
-      "tags": event_tags,
+      "created_at": Time.now.utc.to_i,
+      "kind": channel_key ? 42 : 1,
+      "tags": channel_key ? [['e', channel_key]] : [],
       "content": text
     }
 
@@ -107,10 +103,6 @@ class Nostr
   end
 
   def build_dm_event(text, recipient_public_key)
-    event_created_at = Time.now.utc.to_i
-    event_type = 4
-    event_tags = [['p', recipient_public_key]]
-
     cipher = OpenSSL::Cipher::Cipher.new('aes-256-cbc')
     cipher.encrypt
     cipher.iv = iv = cipher.random_iv
@@ -122,9 +114,9 @@ class Nostr
 
     event = {
       "pubkey": recipient_public_key,
-      "created_at": event_created_at,
-      "kind": event_type,
-      "tags": event_tags,
+      "created_at": Time.now.utc.to_i,
+      "kind": 4,
+      "tags": [['p', recipient_public_key]],
       "content": encrypted_text
     }
 
