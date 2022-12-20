@@ -8,8 +8,7 @@ A ruby library to interact with the [Nostr Protocol](https://github.com/nostr-pr
 
 ---
 
-Usage example:
-
+## Manage the keys
 ```ruby
 require "./nostr-ruby.rb"
 
@@ -26,6 +25,7 @@ n.keys
 # => {:public_key=>"da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81", :private_key=>"964b29795d621cdacf05fd94fb23206c88742db1fa50b34d7545f3a2221d8124"}
 ```
 
+## Set the user metadata
 ```ruby
 metadata = n.build_metadata_event("Mr Robot", "I walk around the city", "https://upload.wikimedia.org/wikipedia/commons/3/35/Mr_robot_photo.jpg", "mrrobot@mrrobot.com")
 #["EVENT",
@@ -38,6 +38,7 @@ metadata = n.build_metadata_event("Mr Robot", "I walk around the city", "https:/
 #  "sig"=>"2ff752e9f3ed824e7677c41c73728315f0532f3437857774d7a50a577563f391785afd1f84bef3e3574939b14cf096380d4790375953c793504ffcf2f0467d69"}]
 ```
 
+## Create a post
 ```ruby
 note = n.build_note_event("Hello Nostr!")
 # =>
@@ -51,6 +52,7 @@ note = n.build_note_event("Hello Nostr!")
 #   "sig"=>"871177b77840bdf092dabacf98c47690647fd6ceb3cc79dd7af7e98c6aded0b808abd5566e2864bd438364cea2f17bd6f9d55091b3c5136839cf160beca42b63"}]
 ```
 
+## Create a channel post
 ```ruby
 channel_note = n.build_note_event("Welcome on my channel :)", "136b0b99eff742e0939799417d04d8b48049672beb6d8110ce6b0fc978cd67a1")
 # =>
@@ -64,6 +66,7 @@ channel_note = n.build_note_event("Welcome on my channel :)", "136b0b99eff742e09
 #   "sig"=>"ccb6cbfa5c3cfac7b7f48dd9cda25d6a2493cbf8df91fa8f9fee2559a20c92613326a319f5b76aff9fef85278e04ce0ee78e636afb4ef2bb000ee8a6fdf418d2"}]
 ```
 
+## Create a private message
 ```ruby
 private_message = n.build_dm_event("Hello!", "da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81") # To myself
 # =>
@@ -77,6 +80,7 @@ private_message = n.build_dm_event("Hello!", "da15317263858ad496a21c79c6dc5f5cf9
 #   "sig"=>"0e390bb3c783157b3e32c3f6641fb40df9f62e326ac8a3448a70c94103b909e80292a2c4530562298f2c3935899111843a43548185abf09abf583bc3e6e3ddde"}]
 ```
 
+## Decrypt a private message
 ```ruby
 # Get the reply from the relay
 reply
