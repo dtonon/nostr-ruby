@@ -89,6 +89,24 @@ class Nostr
     event
   end
 
+  def build_metadata_event(name, about, picture, nip05)
+    data = {}
+    data[:name] = name if name
+    data[:about] = about if about
+    data[:picture] = picture if picture
+    data[:nip05] = nip05 if nip05
+    event = {
+      "pubkey": @public_key,
+      "created_at": Time.now.utc.to_i,
+      "kind": 0,
+      "tags": [],
+      "content": data.to_json
+    }
+
+    event = sign_event(event)
+    ['EVENT', event]
+  end
+
   def build_note_event(text, channel_key = nil)
     event = {
       "pubkey": @public_key,

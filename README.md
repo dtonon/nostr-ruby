@@ -27,6 +27,18 @@ n.keys
 ```
 
 ```ruby
+metadata = n.build_metadata_event("Mr Robot", "I walk around the city", "https://upload.wikimedia.org/wikipedia/commons/3/35/Mr_robot_photo.jpg", "mrrobot@mrrobot.com")
+#["EVENT",
+# {:pubkey=>"9be59510fa12b77340bb57e555bac716455fedf46d1a354185d4e72bd0340b6f",
+#  :created_at=>1671546067,
+#  :kind=>0,
+#  :tags=>[],
+#  :content=>"{\"name\":\"Mr Robot\",\"about\":\"I walk around the city\",\"picture\":\"https://upload.wikimedia.org/wikipedia/commons/3/35/Mr_robot_photo.jpg\",\"nip05\":\"mrrobot@mrrobot.com\"}",
+#  "id"=>"3bd77596ea999dde26689c24370dc4adfa66c33abf1b4c23bf863a516106cda2",
+#  "sig"=>"2ff752e9f3ed824e7677c41c73728315f0532f3437857774d7a50a577563f391785afd1f84bef3e3574939b14cf096380d4790375953c793504ffcf2f0467d69"}]
+```
+
+```ruby
 note = n.build_note_event("Hello Nostr!")
 # =>
 # ["EVENT",
