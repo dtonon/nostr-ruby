@@ -9,9 +9,9 @@ require 'websocket-client-simple'
 # * Ruby library to interact with the Nostr protocol
 
 class Nostr
-  attr_reader :private_key, :public_key, :relay_host
+  attr_reader :private_key, :public_key
 
-  def initialize(key, relay_host = nil)
+  def initialize(key)
     hex_private_key =  if key[:private_key]&.include?('nsec')
       Nostr.to_hex(key[:private_key])
     else
@@ -33,8 +33,6 @@ class Nostr
     else
       raise 'Missing private or public key'
     end
-
-    @relay_host = relay_host
   end
 
   def keys
@@ -236,9 +234,9 @@ class Nostr
     ['NOTICE', message]
   end
 
-  def test_post_event(event)
+  def test_post_event(event, relay)
     response = nil
-    ws = WebSocket::Client::Simple.connect @relay_host
+    ws = WebSocket::Client::Simple.connect relay
     ws.on :message do |msg|
       puts msg
       response = JSON.parse(msg.data)
