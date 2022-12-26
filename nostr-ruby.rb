@@ -181,6 +181,19 @@ class Nostr
     ['EVENT', event]
   end
 
+  def build_deletion_event(events, reason = '')
+    event = {
+      "pubkey": @public_key,
+      "created_at": Time.now.utc.to_i,
+      "kind": 5,
+      "tags": events.map{ |e| ['e', e] },
+      "content": reason
+    }
+
+    event = sign_event(event)
+    ['EVENT', event]
+  end
+
   def decrypt_dm(event)
     data = event[2]
     sender_public_key = dat['pubkey']

@@ -123,5 +123,19 @@ reply
 
 n.decrypt_dm(reply)
 # => "Nice to meet you!"
-
 ```
+
+## Delete an event
+```ruby
+deletion = n.build_deletion_event(["23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb"], "Duplicate")
+# =>
+# ["EVENT",
+#  {:pubkey=>"d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef",
+#   :created_at=>1672080450,
+#   :kind=>5,
+#   :tags=>[["e", "23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb"]],
+#   :content=>"Duplicate",
+#   "id"=>"e4a8556da9dc35da54dff747593073a90ac1de55131ca0deef6a5fd3b402d5fd",
+#   "sig"=>"95ccb5e965c1a6ba36b919a00cd7d3b65286435f93f49a2ebb846dc791a61179e55d544ebf00d4f8eeb53b0a75a97c072287c7458dfbaccb70b4aef6b0acf766"
+```
+
