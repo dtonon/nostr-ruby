@@ -3,6 +3,7 @@ require 'schnorr'
 require 'json'
 require 'base64'
 require 'bech32'
+require 'unicode/emoji'
 require 'websocket-client-simple'
 
 # * Ruby library to interact with the Nostr protocol
@@ -188,6 +189,23 @@ class Nostr
       "kind": 5,
       "tags": events.map{ |e| ['e', e] },
       "content": reason
+    }
+
+    event = sign_event(event)
+    ['EVENT', event]
+  end
+
+  def build_reaction_event(reaction, event, author)
+    raise 'Invalid reaction' unless ['+', '-'].include?(reaction) || reaction.match?(Unicode::Emoji::REGEX)
+    raise 'Invalid author' unless event.is_a?(String) && event.size == 64
+    raise 'Invalid event' unless author.is_a?(String) && author.size == 64
+
+    event = {
+      "pubkey": @public_key,
+      "created_at": Time.now.utc.to_i,
+      "kind": 7,
+      "tags": [['e', event], ['p', author]],
+      "content": reaction
     }
 
     event = sign_event(event)

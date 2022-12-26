@@ -139,3 +139,16 @@ deletion = n.build_deletion_event(["23411895658d374ec922adf774a70172290b2c738ae6
 #   "sig"=>"95ccb5e965c1a6ba36b919a00cd7d3b65286435f93f49a2ebb846dc791a61179e55d544ebf00d4f8eeb53b0a75a97c072287c7458dfbaccb70b4aef6b0acf766"
 ```
 
+## React to an event
+```ruby
+reaction = n.build_reaction_event("🔥", "23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb", "d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef")
+# =>
+# ["EVENT",
+#  {:pubkey=>"d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef",
+#   :created_at=>1672080671,
+#   :kind=>7,
+#   :tags=>[["e", "23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb"], ["p", "d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef"]],
+#   :content=>"🔥",
+#   "id"=>"f267c8ee24989b633b261efaa3892b07cdc90af80cedfd007b24a5c6232fc631",
+#   "sig"=>"84f2fc213337c6d2c26a4638b1db4e39f788811acd5bce5b9141b7ef56a9aa80768fbbd1109a7783a0d3033732675e231de286c6c745e62436865f4f15b838b6"}]
+```

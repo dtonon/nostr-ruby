@@ -7,6 +7,9 @@ GEM
     event_emitter (0.2.6)
     highline (2.0.3)
     json (2.6.2)
+    unicode-emoji (3.3.1)
+      unicode-version (~> 1.0)
+    unicode-version (1.3.0)
     websocket (1.2.9)
     websocket-client-simple (0.6.0)
       event_emitter
@@ -20,6 +23,7 @@ DEPENDENCIES
   bip-schnorr
   highline
   json
+  unicode-emoji
   websocket-client-simple
 
 BUNDLED WITH
