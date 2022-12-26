@@ -131,6 +131,21 @@ class Nostr
     ['EVENT', event]
   end
 
+  def build_recommended_relay_event(relay)
+    raise 'Invalid relay' unless relay.start_with?('wss://') || relay.start_with?('ws://')
+
+    event = {
+      "pubkey": @public_key,
+      "created_at": Time.now.utc.to_i,
+      "kind": 2,
+      "tags": [],
+      "content": relay
+    }
+
+    event = sign_event(event)
+    ['EVENT', event]
+  end
+
   def build_dm_event(text, recipient_public_key)
     cipher = OpenSSL::Cipher::Cipher.new('aes-256-cbc')
     cipher.encrypt

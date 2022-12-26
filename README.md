@@ -66,6 +66,20 @@ channel_note = n.build_note_event("Welcome on my channel :)", "136b0b99eff742e09
 #   "sig"=>"ccb6cbfa5c3cfac7b7f48dd9cda25d6a2493cbf8df91fa8f9fee2559a20c92613326a319f5b76aff9fef85278e04ce0ee78e636afb4ef2bb000ee8a6fdf418d2"}]
 ```
 
+## Recommend a relay
+```ruby
+recommendation = n.build_recommended_relay_event("wss://relay.damus.io")
+# =>
+# ["EVENT",
+#  {:pubkey=>"d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef",
+#   :created_at=>1672079256,
+#   :kind=>2,
+#   :tags=>[],
+#   :content=>"wss://relay.damus.io",
+#   "id"=>"1842c9feb3bf2ad7095c8a51238f598fa028116d4fd919af22ad2c63ba3b7d69",
+#   "sig"=>"9c2f158f379b2d234fd0d363b46a7f90c25392f9296111b6cc04224df8aec69817fa62d7225c12b90fdc31eb89c7afaa427b18147cc8ad6cd411b47dda1331b6"}]
+```
+
 ## Create a private message
 ```ruby
 private_message = n.build_dm_event("Hello!", "da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81") # To myself
