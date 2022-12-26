@@ -80,6 +80,27 @@ recommendation = n.build_recommended_relay_event("wss://relay.damus.io")
 #   "sig"=>"9c2f158f379b2d234fd0d363b46a7f90c25392f9296111b6cc04224df8aec69817fa62d7225c12b90fdc31eb89c7afaa427b18147cc8ad6cd411b47dda1331b6"}]
 ```
 
+## Share a contact list
+```ruby
+contact_list = n.build_contact_list_event(
+  [["54399b6d8200813bfc53177ad4f13d6ab712b6b23f91aefbf5da45aeb5c96b08", "wss://alicerelay.com/", "alice"],
+  ["850708b7099215bf9a1356d242c2354939e9a844c1359d3b5209592a0b420452", "wss://bobrelay.com/nostr", "bob"],
+  ["f7f4b0072368460a09138bf3966fb1c59d0bdadfc3aff4e59e6896194594a82a", "ws://carolrelay.com/ws", "carol"]]
+)
+# =>
+# ["EVENT",
+#  {:pubkey=>"d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef",
+#   :created_at=>1672079733,
+#   :kind=>3,
+#   :tags=>
+#    [["p", "54399b6d8200813bfc53177ad4f13d6ab712b6b23f91aefbf5da45aeb5c96b08", "wss://alicerelay.com/", "alice"],
+#     ["p", "850708b7099215bf9a1356d242c2354939e9a844c1359d3b5209592a0b420452", "wss://bobrelay.com/nostr", "bob"],
+#     ["p", "f7f4b0072368460a09138bf3966fb1c59d0bdadfc3aff4e59e6896194594a82a", "ws://carolrelay.com/ws", "carol"]],
+#   :content=>"",
+#   "id"=>"3cdc1b5fa9d29aaa6b068cfb66cfd95f79784792beaec6cbb2645187b1c632e9",
+#   "sig"=>"e560e0d1a42261900c8ec32bf2d2016b95c3291adb45c7bf82ef94061beb44a45d6a768d9be773ec48ba9f54d05b4505bda0c1f21805e2be681c7436b3d39791"}]
+```
+
 ## Create a private message
 ```ruby
 private_message = n.build_dm_event("Hello!", "da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81") # To myself

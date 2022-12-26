@@ -146,6 +146,19 @@ class Nostr
     ['EVENT', event]
   end
 
+  def build_contact_list_event(contacts)
+    event = {
+      "pubkey": @public_key,
+      "created_at": Time.now.utc.to_i,
+      "kind": 3,
+      "tags": contacts.map { |c| ['p'] + c },
+      "content": ''
+    }
+
+    event = sign_event(event)
+    ['EVENT', event]
+  end
+
   def build_dm_event(text, recipient_public_key)
     cipher = OpenSSL::Cipher::Cipher.new('aes-256-cbc')
     cipher.encrypt
