@@ -70,6 +70,12 @@ class Nostr
   end
 
   def sign_event(event)
+    raise 'Invalid pubkey' unless event[:pubkey].is_a?(String) && event[:pubkey].size == 64
+    raise 'Invalid created_at' unless event[:created_at].is_a?(Integer)
+    raise 'Invalid kind' unless (0..29_999).include?(event[:kind])
+    raise 'Invalid tags' unless event[:tags].is_a?(Array)
+    raise 'Invalid content' unless event[:content].is_a?(String)
+
     serialized_event = [
       0,
       event[:pubkey],
@@ -87,6 +93,11 @@ class Nostr
     event['id'] = serialized_event_sha256
     event['sig'] = event_signature
     event
+  end
+
+  def build_event(payload)
+    event = sign_event(payload)
+    ['EVENT', event]
   end
 
   def build_metadata_event(name, about, picture, nip05)
