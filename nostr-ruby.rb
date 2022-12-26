@@ -9,7 +9,7 @@ require 'websocket-client-simple'
 # * Ruby library to interact with the Nostr protocol
 
 class Nostr
-  attr_reader :private_key, :public_key
+  attr_reader :private_key, :public_key, :pow_difficulty_target
 
   def initialize(key)
     hex_private_key =  if key[:private_key]&.include?('nsec')
@@ -84,11 +84,28 @@ class Nostr
       event[:content]
     ]
 
-    serialized_event_json = JSON.dump(serialized_event)
-    serialized_event_sha256 = Digest::SHA256.hexdigest(serialized_event_json)
+    serialized_event_sha256 = nil
+    if @pow_difficulty_target
+      nonce = 1
+      loop do
+        nonce_tag = ['nonce', nonce.to_s, @pow_difficulty_target.to_s]
+        nonced_serialized_event = serialized_event.clone
+        nonced_serialized_event[4] = nonced_serialized_event[4] + [nonce_tag]
+        serialized_event_sha256 = Digest::SHA256.hexdigest(JSON.dump(nonced_serialized_event))
+        if match_pow_difficulty?(serialized_event_sha256)
+          event[:tags] << nonce_tag
+          break
+        end
+        nonce += 1
+      end
+    else
+      serialized_event_sha256 = Digest::SHA256.hexdigest(JSON.dump(serialized_event))
+    end
+
     private_key = Array(@private_key).pack('H*')
     message = Array(serialized_event_sha256).pack('H*')
     event_signature = Schnorr.sign(message, private_key).encode.unpack('H*')[0]
+
     event['id'] = serialized_event_sha256
     event['sig'] = event_signature
     event
@@ -232,6 +249,14 @@ class Nostr
 
   def build_notice_event(message)
     ['NOTICE', message]
+  end
+
+  def match_pow_difficulty?(event_id)
+    @pow_difficulty_target.nil? || @pow_difficulty_target == [event_id].pack("H*").unpack("B*")[0].index('1')
+  end
+
+  def set_pow_difficulty_target(n)
+    @pow_difficulty_target = n
   end
 
   def test_post_event(event, relay)

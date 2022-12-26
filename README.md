@@ -152,3 +152,18 @@ reaction = n.build_reaction_event("🔥", "23411895658d374ec922adf774a70172290b2
 #   "id"=>"f267c8ee24989b633b261efaa3892b07cdc90af80cedfd007b24a5c6232fc631",
 #   "sig"=>"84f2fc213337c6d2c26a4638b1db4e39f788811acd5bce5b9141b7ef56a9aa80768fbbd1109a7783a0d3033732675e231de286c6c745e62436865f4f15b838b6"}]
 ```
+
+## Create events with a PoW difficulty
+```ruby
+n.set_pow_difficulty(16)
+note = n.build_note_event("Hello Nostr!")
+# =>
+# ["EVENT",
+#  {:pubkey=>"d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef",
+#   :created_at=>1672095162,
+#   :kind=>42,
+#   :tags=>[["e", "d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef"], ["nonce", "232735", "16"]],
+#   :content=>"Hello Nostr!",
+#   "id"=>"0000fb0c4563274e742e56d7d6de08684a2a25dfb52b79cccdb49c649dccbf45",
+#   "sig"=>"838a1457c75084319e4723fbd9cbcf4c3311c466daf3908ffa114682094140e3b188996a73ae9fd3d3c6dbf08beecf9081b8d2bf0e60163b07cdf36a50dea1c0"}]
+```
