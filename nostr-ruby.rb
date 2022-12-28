@@ -186,7 +186,7 @@ class Nostr
     encrypted_text = encrypted_text.gsub("\n", '')
 
     event = {
-      "pubkey": recipient_public_key,
+      "pubkey": @public_key,
       "created_at": Time.now.utc.to_i,
       "kind": 4,
       "tags": [['p', recipient_public_key]],
