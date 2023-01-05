@@ -1,3 +1,5 @@
+source 'https://rubygems.org'
+
 gem 'bip-schnorr', require: 'schnorr'
 gem "json"
 gem "base64"
