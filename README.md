@@ -8,9 +8,15 @@ A ruby library to interact with the [Nostr Protocol](https://github.com/nostr-pr
 
 ---
 
-## Manage the keys
+## Installation 
+
+```
+gem install nostr_ruby
+```
+## Usage
+### Manage the keys
 ```ruby
-require "./nostr-ruby.rb"
+require "nostr_ruby"
 
 n = Nostr.new({private_key: "964b29795d621cdacf05fd94fb23206c88742db1fa50b34d7545f3a2221d8124"})
 # <Nostr:0x00000001063ffa28 @private_key="964b29795d621cdacf05fd94fb23206c88742db1fa50b34d7545f3a2221d8124" @public_key="da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81">
@@ -25,7 +31,7 @@ n.keys
 # => {:public_key=>"da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81", :private_key=>"964b29795d621cdacf05fd94fb23206c88742db1fa50b34d7545f3a2221d8124"}
 ```
 
-## Set the user metadata
+### Set the user metadata
 ```ruby
 metadata = n.build_metadata_event("Mr Robot", "I walk around the city", "https://upload.wikimedia.org/wikipedia/commons/3/35/Mr_robot_photo.jpg", "mrrobot@mrrobot.com")
 #["EVENT",
@@ -38,7 +44,7 @@ metadata = n.build_metadata_event("Mr Robot", "I walk around the city", "https:/
 #  "sig"=>"2ff752e9f3ed824e7677c41c73728315f0532f3437857774d7a50a577563f391785afd1f84bef3e3574939b14cf096380d4790375953c793504ffcf2f0467d69"}]
 ```
 
-## Create a post
+### Create a post
 ```ruby
 note = n.build_note_event("Hello Nostr!")
 # =>
@@ -52,7 +58,7 @@ note = n.build_note_event("Hello Nostr!")
 #   "sig"=>"871177b77840bdf092dabacf98c47690647fd6ceb3cc79dd7af7e98c6aded0b808abd5566e2864bd438364cea2f17bd6f9d55091b3c5136839cf160beca42b63"}]
 ```
 
-## Create a channel post
+### Create a channel post
 ```ruby
 channel_note = n.build_note_event("Welcome on my channel :)", "136b0b99eff742e0939799417d04d8b48049672beb6d8110ce6b0fc978cd67a1")
 # =>
@@ -66,7 +72,7 @@ channel_note = n.build_note_event("Welcome on my channel :)", "136b0b99eff742e09
 #   "sig"=>"ccb6cbfa5c3cfac7b7f48dd9cda25d6a2493cbf8df91fa8f9fee2559a20c92613326a319f5b76aff9fef85278e04ce0ee78e636afb4ef2bb000ee8a6fdf418d2"}]
 ```
 
-## Recommend a relay
+### Recommend a relay
 ```ruby
 recommendation = n.build_recommended_relay_event("wss://relay.damus.io")
 # =>
@@ -80,7 +86,7 @@ recommendation = n.build_recommended_relay_event("wss://relay.damus.io")
 #   "sig"=>"9c2f158f379b2d234fd0d363b46a7f90c25392f9296111b6cc04224df8aec69817fa62d7225c12b90fdc31eb89c7afaa427b18147cc8ad6cd411b47dda1331b6"}]
 ```
 
-## Share a contact list
+### Share a contact list
 ```ruby
 contact_list = n.build_contact_list_event(
   [["54399b6d8200813bfc53177ad4f13d6ab712b6b23f91aefbf5da45aeb5c96b08", "wss://alicerelay.com/", "alice"],
@@ -101,7 +107,7 @@ contact_list = n.build_contact_list_event(
 #   "sig"=>"e560e0d1a42261900c8ec32bf2d2016b95c3291adb45c7bf82ef94061beb44a45d6a768d9be773ec48ba9f54d05b4505bda0c1f21805e2be681c7436b3d39791"}]
 ```
 
-## Create a private message
+### Create a private message
 ```ruby
 private_message = n.build_dm_event("Hello!", "da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81") # To myself
 # =>
@@ -115,7 +121,7 @@ private_message = n.build_dm_event("Hello!", "da15317263858ad496a21c79c6dc5f5cf9
 #   "sig"=>"0e390bb3c783157b3e32c3f6641fb40df9f62e326ac8a3448a70c94103b909e80292a2c4530562298f2c3935899111843a43548185abf09abf583bc3e6e3ddde"}]
 ```
 
-## Decrypt a private message
+### Decrypt a private message
 ```ruby
 # Get the reply from the relay
 reply
@@ -125,7 +131,7 @@ n.decrypt_dm(reply)
 # => "Nice to meet you!"
 ```
 
-## Delete an event
+### Delete an event
 ```ruby
 deletion = n.build_deletion_event(["23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb"], "Duplicate")
 # =>
@@ -139,7 +145,7 @@ deletion = n.build_deletion_event(["23411895658d374ec922adf774a70172290b2c738ae6
 #   "sig"=>"95ccb5e965c1a6ba36b919a00cd7d3b65286435f93f49a2ebb846dc791a61179e55d544ebf00d4f8eeb53b0a75a97c072287c7458dfbaccb70b4aef6b0acf766"
 ```
 
-## React to an event
+### React to an event
 ```ruby
 reaction = n.build_reaction_event("🔥", "23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb", "d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef")
 # =>
@@ -153,7 +159,7 @@ reaction = n.build_reaction_event("🔥", "23411895658d374ec922adf774a70172290b2
 #   "sig"=>"84f2fc213337c6d2c26a4638b1db4e39f788811acd5bce5b9141b7ef56a9aa80768fbbd1109a7783a0d3033732675e231de286c6c745e62436865f4f15b838b6"}]
 ```
 
-## Create events with a PoW difficulty
+### Create events with a PoW difficulty
 ```ruby
 n.set_pow_difficulty(16)
 note = n.build_note_event("Hello Nostr!")
