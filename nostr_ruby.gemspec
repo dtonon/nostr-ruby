@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.name          = 'nostr_ruby'
   s.version       = NostrRuby::VERSION
   s.summary       = 'A Ruby library to interact with the Nostr protocol'
-  s.description   = 'This gem provides a simple class, MyGem, that can be used in other Ruby projects.'
+  s.description   = 'NostrRuby is a Ruby library to interact with the Nostr protocol. At this stage the focus is the creation of public events and private encrypted messages.'
   s.authors       = ['Daniele Tonon']
   s.homepage      = 'https://github.com/dtonon/nostr-ruby'
   s.licenses      = ['MIT']
