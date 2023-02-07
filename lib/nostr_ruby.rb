@@ -28,7 +28,7 @@ class Nostr
     if hex_private_key
       @private_key = hex_private_key
       group = ECDSA::Group::Secp256k1
-      @public_key = group.generator.multiply_by_scalar(private_key.to_i(16)).x.to_s(16)
+      @public_key = group.generator.multiply_by_scalar(private_key.to_i(16)).x.to_s(16).rjust(64, '0')
     elsif hex_public_key
       @public_key = hex_public_key
     else
