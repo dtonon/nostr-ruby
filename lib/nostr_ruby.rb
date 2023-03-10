@@ -1,4 +1,5 @@
 require 'custom_addr'
+require 'crypto_tools'
 require 'ecdsa'
 require 'schnorr'
 require 'json'
@@ -10,6 +11,8 @@ require 'websocket-client-simple'
 # * Ruby library to interact with the Nostr protocol
 
 class Nostr
+  include CryptoTools
+
   attr_reader :private_key, :public_key, :pow_difficulty_target
 
   def initialize(key)
@@ -58,15 +61,6 @@ class Nostr
     custom_addr.scriptpubkey = hex_key
     custom_addr.hrp = hrp
     custom_addr.addr
-  end
-
-  def calculate_shared_key(other_public_key)
-    ec = OpenSSL::PKey::EC.new('secp256k1')
-    ec.private_key = OpenSSL::BN.new(@private_key, 16)
-    recipient_key_hex = "02#{other_public_key}"
-    recipient_pub_bn = OpenSSL::BN.new(recipient_key_hex, 16)
-    secret_point = OpenSSL::PKey::EC::Point.new(ec.group, recipient_pub_bn)
-    ec.dh_compute_key(secret_point)
   end
 
   def sign_event(event)
@@ -177,14 +171,7 @@ class Nostr
   end
 
   def build_dm_event(text, recipient_public_key)
-    cipher = OpenSSL::Cipher::Cipher.new('aes-256-cbc')
-    cipher.encrypt
-    cipher.iv = iv = cipher.random_iv
-    cipher.key = calculate_shared_key(recipient_public_key)
-    encrypted_text = cipher.update(text)
-    encrypted_text << cipher.final
-    encrypted_text = "#{Base64.encode64(encrypted_text)}?iv=#{Base64.encode64(iv)}"
-    encrypted_text = encrypted_text.gsub("\n", '')
+    encrypted_text = CryptoTools.aes_256_cbc_encrypt(@private_key, recipient_public_key, text)
 
     event = {
       "pubkey": @public_key,
@@ -233,11 +220,7 @@ class Nostr
     sender_public_key = data[:pubkey] != @public_key ? data[:pubkey] : data[:tags][0][1]
     encrypted = data[:content].split('?iv=')[0]
     iv = data[:content].split('?iv=')[1]
-    cipher = OpenSSL::Cipher::Cipher.new('aes-256-cbc')
-    cipher.decrypt
-    cipher.iv = Base64.decode64(iv)
-    cipher.key = calculate_shared_key(sender_public_key)
-    (cipher.update(Base64.decode64(encrypted)) + cipher.final).force_encoding('UTF-8')
+    CryptoTools.aes_256_cbc_decrypt(@private_key, sender_public_key, encrypted, iv)
   end
 
   def build_req_event(filters)
