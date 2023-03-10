@@ -229,10 +229,10 @@ class Nostr
   end
 
   def decrypt_dm(event)
-    data = event[2]
-    sender_public_key = dat['pubkey']
-    encrypted = data['content'].split('?iv=')[0]
-    iv = data['content'].split('?iv=')[1]
+    data = event[1]
+    sender_public_key = data[:pubkey] != @public_key ? data[:pubkey] : data[:tags][0][1]
+    encrypted = data[:content].split('?iv=')[0]
+    iv = data[:content].split('?iv=')[1]
     cipher = OpenSSL::Cipher::Cipher.new('aes-256-cbc')
     cipher.decrypt
     cipher.iv = Base64.decode64(iv)
