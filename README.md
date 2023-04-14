@@ -173,3 +173,41 @@ note = n.build_note_event("Hello Nostr!")
 #   "id"=>"0000fb0c4563274e742e56d7d6de08684a2a25dfb52b79cccdb49c649dccbf45",
 #   "sig"=>"838a1457c75084319e4723fbd9cbcf4c3311c466daf3908ffa114682094140e3b188996a73ae9fd3d3c6dbf08beecf9081b8d2bf0e60163b07cdf36a50dea1c0"}]
 ```
+
+### Create events with a NIP-26 delegation
+```ruby
+from = Time.now.to_i
+to = (Time.now + 60*60).to_i
+delegatee_pubkey = "b1d8dfd69fe8795042dbbc4d3f85938a01d4740c54d2daf11088c75c50ff19d9"
+conditions = "kind=1&created_at>#{from}&created_at<#{to}"
+tag = n.get_delegation_tag(delegatee_pubkey, conditions)
+n.set_delegation(tag)
+n.build_note_event("I delegate someone to post this!")
+#=>
+#["EVENT",
+# {:pubkey=>"1ed41a3ce33edfc580102abfbdc01d922f8c7697beee3e395aa7dcd7115a3372",
+#  :created_at=>1681503318,
+#  :kind=>1,
+#  :tags=>
+#   [["delegation",
+#     "1ed41a3ce33edfc580102abfbdc01d922f8c7697beee3e395aa7dcd7115a3372",
+#     "kind=1&created_at>1681503305&created_at<1681506905",
+#     "dbbdc7074a5c2d2a53ee174c43afb0bb03106ced866e0dfa7996fe2553a54aaa9af6affe915ec2e688e26357681bfcf0445d607ed85eca2217f79fb51094d816"]],
+#  :content=>"I delegate someone to post this!",
+#  "id"=>"f6fd20535db6748e0529052310c47dc788616b03f8cef20260ca6a2dfb5dedaf",
+#  "sig"=>"826d7bd1f369f6ab8330746c236437610f13205809d12bc94af287b7ceec180443a3a750267d5152323329a1b2d02d0702364fa3ee8228bab57016b39975e449"}]
+```
+
+### Verify a NIP-26 delegation
+```ruby
+delegatee_pubkey = "b1d8dfd69fe8795042dbbc4d3f85938a01d4740c54d2daf11088c75c50ff19d9"
+tag = ["delegation", delegator_pubkey, conditions, signature]
+Nostr.verify_delegation_signature(delegatee_pubkey, tag)
+#=> true
+```
+
+### Reset the NIP-26 delegation
+```ruby
+n.reset_delegation
+#=> nil
+```

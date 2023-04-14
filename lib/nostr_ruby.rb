@@ -1,5 +1,5 @@
-require 'custom_addr'
-require 'crypto_tools'
+require_relative 'custom_addr'
+require_relative 'crypto_tools'
 require 'ecdsa'
 require 'schnorr'
 require 'json'
@@ -13,7 +13,7 @@ require 'websocket-client-simple'
 class Nostr
   include CryptoTools
 
-  attr_reader :private_key, :public_key, :pow_difficulty_target
+  attr_reader :private_key, :public_key, :pow_difficulty_target, :nip26_delegation_tag
 
   def initialize(key)
     hex_private_key =  if key[:private_key]&.include?('nsec')
@@ -107,6 +107,10 @@ class Nostr
   end
 
   def build_event(payload)
+    if @nip26_delegation_tag
+      payload[:tags] = [] unless payload[:tags]
+      payload[:tags] << @nip26_delegation_tag
+    end
     event = sign_event(payload)
     ['EVENT', event]
   end
@@ -125,8 +129,7 @@ class Nostr
       "content": data.to_json
     }
 
-    event = sign_event(event)
-    ['EVENT', event]
+    build_event(event)
   end
 
   def build_note_event(text, channel_key = nil)
@@ -138,8 +141,7 @@ class Nostr
       "content": text
     }
 
-    event = sign_event(event)
-    ['EVENT', event]
+    build_event(event)
   end
 
   def build_recommended_relay_event(relay)
@@ -153,8 +155,7 @@ class Nostr
       "content": relay
     }
 
-    event = sign_event(event)
-    ['EVENT', event]
+    build_event(event)
   end
 
   def build_contact_list_event(contacts)
@@ -166,8 +167,7 @@ class Nostr
       "content": ''
     }
 
-    event = sign_event(event)
-    ['EVENT', event]
+    build_event(event)
   end
 
   def build_dm_event(text, recipient_public_key)
@@ -181,8 +181,7 @@ class Nostr
       "content": encrypted_text
     }
 
-    event = sign_event(event)
-    ['EVENT', event]
+    build_event(event)
   end
 
   def build_deletion_event(events, reason = '')
@@ -194,8 +193,7 @@ class Nostr
       "content": reason
     }
 
-    event = sign_event(event)
-    ['EVENT', event]
+    build_event(event)
   end
 
   def build_reaction_event(reaction, event, author)
@@ -211,8 +209,7 @@ class Nostr
       "content": reaction
     }
 
-    event = sign_event(event)
-    ['EVENT', event]
+    build_event(event)
   end
 
   def decrypt_dm(event)
@@ -221,6 +218,30 @@ class Nostr
     encrypted = data[:content].split('?iv=')[0]
     iv = data[:content].split('?iv=')[1]
     CryptoTools.aes_256_cbc_decrypt(@private_key, sender_public_key, encrypted, iv)
+  end
+
+  def get_delegation_tag(delegatee_pubkey, conditions)
+    delegation_message_sha256 = Digest::SHA256.hexdigest("nostr:delegation:#{delegatee_pubkey}:#{conditions}")
+    signature = Schnorr.sign(Array(delegation_message_sha256).pack('H*'), Array(@private_key).pack('H*')).encode.unpack('H*')[0]
+    [
+      "delegation",
+      @public_key,
+      conditions,
+      signature
+    ]
+  end
+
+  def set_delegation(tag)
+    @nip26_delegation_tag = tag
+  end
+
+  def reset_delegation
+    @nip26_delegation_tag = nil
+  end
+
+  def self.verify_delegation_signature(delegatee_pubkey, tag)
+    delegation_message_sha256 = Digest::SHA256.hexdigest("nostr:delegation:#{delegatee_pubkey}:#{tag[2]}")
+    Schnorr.valid_sig?(Array(delegation_message_sha256).pack('H*'), Array(tag[1]).pack('H*'), Array(tag[3]).pack('H*'))
   end
 
   def build_req_event(filters)
