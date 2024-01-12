@@ -7,6 +7,7 @@ require 'base64'
 require 'bech32'
 require 'unicode/emoji'
 require 'websocket-client-simple'
+require 'nostr_ruby/nips/metadata_event'
 
 # * Ruby library to interact with the Nostr protocol
 
@@ -101,8 +102,8 @@ class Nostr
     message = Array(serialized_event_sha256).pack('H*')
     event_signature = Schnorr.sign(message, private_key).encode.unpack('H*')[0]
 
-    event['id'] = serialized_event_sha256
-    event['sig'] = event_signature
+    event[:id] = serialized_event_sha256
+    event[:sig] = event_signature
     event
   end
 
@@ -115,19 +116,12 @@ class Nostr
     ['EVENT', event]
   end
 
-  def build_metadata_event(name, about, picture, nip05)
-    data = {}
-    data[:name] = name if name
-    data[:about] = about if about
-    data[:picture] = picture if picture
-    data[:nip05] = nip05 if nip05
-    event = {
-      "pubkey": @public_key,
-      "created_at": Time.now.utc.to_i,
-      "kind": 0,
-      "tags": [],
-      "content": data.to_json
-    }
+  # @see {Struto::Nips::MetadataEvent}
+  def build_metadata_event(metadata = {})
+    instance = NostrRuby::Nips::MetadataEvent.new(metadata)
+
+    event = instance.call
+    event[:pubkey] = @public_key
 
     build_event(event)
   end
