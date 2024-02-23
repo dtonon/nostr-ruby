@@ -66,7 +66,7 @@ class Nostr
   def sign_event(event)
     raise 'Invalid pubkey' unless event[:pubkey].is_a?(String) && event[:pubkey].size == 64
     raise 'Invalid created_at' unless event[:created_at].is_a?(Integer)
-    raise 'Invalid kind' unless (0..29_999).include?(event[:kind])
+    raise 'Invalid kind' unless event[:kind].is_a?(Integer)
     raise 'Invalid tags' unless event[:tags].is_a?(Array)
     raise 'Invalid content' unless event[:content].is_a?(String)
 
