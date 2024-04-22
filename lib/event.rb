@@ -2,18 +2,12 @@ module Nostr
   class Event
     include CryptoTools
 
-    attr_reader :kind
-    attr_reader :pubkey
-    attr_reader :created_at
-    attr_reader :tags
-    attr_reader :content
-    attr_reader :id
-    attr_reader :sig
+    ATTRIBUTES = [:kind, :pubkey, :created_at, :tags, :content, :id, :sig, :pow, :delegation, :nip4_recipient]
 
-    attr_reader :pow
-    attr_reader :delegation
-    attr_reader :nip4_recipient # Deprecated, kept for retrocompatibility
-    attr_reader :encrypted_content
+    # Create attr_reader for each attribute name
+    ATTRIBUTES.each do |attribute|
+      attr_reader attribute
+    end
 
     def initialize(
       kind,
@@ -35,6 +29,29 @@ module Nostr
       @pow = options[:pow] if options[:pow]
       @delegation = options[:delegation] if options[:delegation]
       @nip4_recipient = options[:nip4_recipient] if options[:nip4_recipient]
+    end
+
+    # Create setter methods for each attribute name
+    ATTRIBUTES.each do |attribute|
+      define_method("#{attribute}=") do |value|
+        return if instance_variable_get("@#{attribute}") == value
+        instance_variable_set("@#{attribute}", value)
+        reset!
+      end
+    end
+
+    def content=(content)
+      return if @content == content
+      @content = content
+      @encrypted_content = nil
+      reset!
+    end
+
+    def nip4_recipient=(nip4_recipient)
+      return if @nip4_recipient == nip4_recipient
+      @nip4_recipient = nip4_recipient
+      @encrypted_content = nil
+      reset!
     end
 
     def generate_delegation(delegatee_pubkey, conditions, private_key)
