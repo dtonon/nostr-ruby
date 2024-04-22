@@ -1,3 +1,4 @@
+require_relative 'version'
 require_relative 'tools/custom_addr'
 require_relative 'tools/crypto_tools'
 
