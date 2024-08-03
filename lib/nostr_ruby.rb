@@ -12,12 +12,6 @@ require 'websocket-client-simple'
 
 require_relative 'event'
 require_relative 'client'
-require_relative 'nips/metadata'
-require_relative 'nips/short_note'
-require_relative 'nips/direct_message'
-require_relative 'nips/deletion'
-require_relative 'nips/contact_list'
-require_relative 'nips/reaction'
 
 module Nostr
   METADATA_KIND = 0
