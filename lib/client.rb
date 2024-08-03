@@ -33,8 +33,7 @@ module Nostr
       event.send("sign", private_key)
     end
 
-    def decrypt_nip4(event)
-      raise "Not a Nostr::DirectMessage" unless event.is_a?(Nostr::DirectMessage)
+    def decrypt(event)
       event.send("decrypt", private_key)
     end
 

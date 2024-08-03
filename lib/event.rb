@@ -139,5 +139,16 @@ module Nostr
       @sign = nil
     end
 
+    def decrypt(private_key)
+      case self.kind
+      when Nostr::Kind::DIRECT_MESSAGE
+        data = @encrypted_content.split('?iv=')[0]
+        iv = @encrypted_content.split('?iv=')[1]
+        @content = CryptoTools.aes_256_cbc_decrypt(private_key, @nip4_recipient, data, iv)
+      else
+        raise "Unable to decrypt a kind #{event.kind} event"
+      end
+    end
+
   end
 end
