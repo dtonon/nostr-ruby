@@ -10,14 +10,10 @@ require 'bech32'
 require 'unicode/emoji'
 require 'websocket-client-simple'
 
+require_relative 'kind'
 require_relative 'event'
 require_relative 'client'
 
 module Nostr
-  METADATA_KIND = 0
-  SHORT_NOTE_KIND = 1
-  CONTACT_LIST_KIND = 3
-  DIRECT_MESSAGE_KIND = 4
-  DELETION_KIND = 5
-  REACTION_KIND = 7
+
 end
