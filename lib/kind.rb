@@ -1,10 +1,10 @@
 module Nostr
   module Kind
-    Metadata = 0
-    ShortNote = 1
-    ContactList = 3
-    DirectMessage = 4
-    Deletion = 5
-    Reaction = 7
+    METADATA = 0
+    SHORT_NOTE = 1
+    CONTACT_LIST = 3
+    DIRECT_MESSAGE = 4
+    DELETION = 5
+    REACTION = 7
   end
 end
