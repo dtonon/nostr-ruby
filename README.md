@@ -2,38 +2,53 @@
 
 A ruby library to interact with the [Nostr Protocol](https://github.com/nostr-protocol/nostr).
 
----
+> [!Warning]
+> This is a first proof of concept version, the API will probably change in the near future.
 
-**Note**: this is a first proof of concept version, the API will probably change in the near future.
 
----
+## Installation
 
-## Installation 
+Add this line to your application's Gemfile:
 
+```ruby
+# Gemfile
+gem 'nostr_ruby'
 ```
-gem install nostr_ruby
+
+And then execute:
+
+```shell
+$ bundle
 ```
+
+Or install it yourself as:
+```shell
+$ gem install nostr_ruby
+```
+
 ## Usage
+
 ### Manage the keys
+
 ```ruby
 require "nostr_ruby"
 
-n = Nostr.new({private_key: "964b29795d621cdacf05fd94fb23206c88742db1fa50b34d7545f3a2221d8124"})
+nostr = Nostr.new(private_key: "964b29795d621cdacf05fd94fb23206c88742db1fa50b34d7545f3a2221d8124")
 # <Nostr:0x00000001063ffa28 @private_key="964b29795d621cdacf05fd94fb23206c88742db1fa50b34d7545f3a2221d8124" @public_key="da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81">
 
-n.bech32_keys
+nostr.bech32_keys
 # => {:public_key=>"npub1mg2nzunrsk9df94zr3uudhzltnu6lzq2muax09xmhu5gxxrvnkqsvpjg3p", :private_key=>"nsec1je9jj72avgwd4nc9lk20kgeqdjy8gtd3lfgtxnt4ghe6ygsasyjq7kh6c4"}
 
-n = Nostr.new({private_key: "nsec1je9jj72avgwd4nc9lk20kgeqdjy8gtd3lfgtxnt4ghe6ygsasyjq7kh6c4"})
+nostr = Nostr.new(private_key: "nsec1je9jj72avgwd4nc9lk20kgeqdjy8gtd3lfgtxnt4ghe6ygsasyjq7kh6c4")
 # => #<Nostr:0x00000001060952c0 @private_key="964b29795d621cdacf05fd94fb23206c88742db1fa50b34d7545f3a2221d8124", @public_key="da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81">
 
-n.keys
+nostr.keys
 # => {:public_key=>"da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81", :private_key=>"964b29795d621cdacf05fd94fb23206c88742db1fa50b34d7545f3a2221d8124"}
 ```
 
 ### Set the user metadata
 ```ruby
-metadata = n.build_metadata_event("Mr Robot", "I walk around the city", "https://upload.wikimedia.org/wikipedia/commons/3/35/Mr_robot_photo.jpg", "mrrobot@mrrobot.com")
+metadata = nostr.build_metadata_event("Mr Robot", "I walk around the city", "https://upload.wikimedia.org/wikipedia/commons/3/35/Mr_robot_photo.jpg", "mrrobot@mrrobot.com")
 #["EVENT",
 # {:pubkey=>"9be59510fa12b77340bb57e555bac716455fedf46d1a354185d4e72bd0340b6f",
 #  :created_at=>1671546067,
@@ -46,7 +61,7 @@ metadata = n.build_metadata_event("Mr Robot", "I walk around the city", "https:/
 
 ### Create a post
 ```ruby
-note = n.build_note_event("Hello Nostr!")
+note = nostr.build_note_event("Hello Nostr!")
 # =>
 # ["EVENT",
 #  {:pubkey=>"da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81",
@@ -60,7 +75,7 @@ note = n.build_note_event("Hello Nostr!")
 
 ### Create a channel post
 ```ruby
-channel_note = n.build_note_event("Welcome on my channel :)", "136b0b99eff742e0939799417d04d8b48049672beb6d8110ce6b0fc978cd67a1")
+channel_note = nostr.build_note_event("Welcome on my channel :)", "136b0b99eff742e0939799417d04d8b48049672beb6d8110ce6b0fc978cd67a1")
 # =>
 # ["EVENT",
 #  {:pubkey=>"da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81",
@@ -74,7 +89,7 @@ channel_note = n.build_note_event("Welcome on my channel :)", "136b0b99eff742e09
 
 ### Recommend a relay
 ```ruby
-recommendation = n.build_recommended_relay_event("wss://relay.damus.io")
+recommendation = nostr.build_recommended_relay_event("wss://relay.damus.io")
 # =>
 # ["EVENT",
 #  {:pubkey=>"d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef",
@@ -88,7 +103,7 @@ recommendation = n.build_recommended_relay_event("wss://relay.damus.io")
 
 ### Share a contact list
 ```ruby
-contact_list = n.build_contact_list_event(
+contact_list = nostr.build_contact_list_event(
   [["54399b6d8200813bfc53177ad4f13d6ab712b6b23f91aefbf5da45aeb5c96b08", "wss://alicerelay.com/", "alice"],
   ["850708b7099215bf9a1356d242c2354939e9a844c1359d3b5209592a0b420452", "wss://bobrelay.com/nostr", "bob"],
   ["f7f4b0072368460a09138bf3966fb1c59d0bdadfc3aff4e59e6896194594a82a", "ws://carolrelay.com/ws", "carol"]]
@@ -109,7 +124,7 @@ contact_list = n.build_contact_list_event(
 
 ### Create a private message
 ```ruby
-private_message = n.build_dm_event("Hello!", "da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81") # To myself
+private_message = nostr.build_dm_event("Hello!", "da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81") # To myself
 # =>
 # ["EVENT",
 #  {:pubkey=>"da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81",
@@ -127,13 +142,13 @@ private_message = n.build_dm_event("Hello!", "da15317263858ad496a21c79c6dc5f5cf9
 reply
 # => ["EVENT","0.27631406274260906",{"tags":[["p","da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81"]],"content":"vWATHf2l/KI7RSyVlbxpvufZc+Lui/0oDysTyfEG5vs=?iv=G4SG7ArMGkglX0UJbJBDUA==","sig":"fe816b86579f5d13ab23c88410364442a9b4393ac0d74f4642cd51a1887f04908ff57ef60409d529a6939c50d77b048320417005460b0353c8f990d1b35c3661","id":"5a0274f33cdb064136c1423ac4b096d7f1e3fb36f60404ef2449ee44331de03f","kind":4,"pubkey":"da15317263858ad496a21c79c6dc5f5cf9af880adf3a6794dbbf2883186c9d81","created_at":1671407520}]
 
-n.decrypt_dm(reply)
+nostr.decrypt_dm(reply)
 # => "Nice to meet you!"
 ```
 
 ### Delete an event
 ```ruby
-deletion = n.build_deletion_event(["23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb"], "Duplicate")
+deletion = nostr.build_deletion_event(["23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb"], "Duplicate")
 # =>
 # ["EVENT",
 #  {:pubkey=>"d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef",
@@ -147,7 +162,7 @@ deletion = n.build_deletion_event(["23411895658d374ec922adf774a70172290b2c738ae6
 
 ### React to an event
 ```ruby
-reaction = n.build_reaction_event("🔥", "23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb", "d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef")
+reaction = nostr.build_reaction_event("🔥", "23411895658d374ec922adf774a70172290b2c738ae67815bd8945e5d8fff3bb", "d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef")
 # =>
 # ["EVENT",
 #  {:pubkey=>"d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef",
@@ -161,8 +176,8 @@ reaction = n.build_reaction_event("🔥", "23411895658d374ec922adf774a70172290b2
 
 ### Create events with a PoW difficulty
 ```ruby
-n.set_pow_difficulty(16)
-note = n.build_note_event("Hello Nostr!")
+nostr.set_pow_difficulty(16)
+note = nostr.build_note_event("Hello Nostr!")
 # =>
 # ["EVENT",
 #  {:pubkey=>"d0fbe5e40469bba810ecb9e1b0b6c13370592df161655e81497c2eb69d0d5bef",
@@ -180,9 +195,9 @@ from = Time.now.to_i
 to = (Time.now + 60*60).to_i
 delegatee_pubkey = "b1d8dfd69fe8795042dbbc4d3f85938a01d4740c54d2daf11088c75c50ff19d9"
 conditions = "kind=1&created_at>#{from}&created_at<#{to}"
-tag = n.get_delegation_tag(delegatee_pubkey, conditions)
-n.set_delegation(tag)
-n.build_note_event("I delegate someone to post this!")
+tag = nostr.get_delegation_tag(delegatee_pubkey, conditions)
+nostr.set_delegation(tag)
+nostr.build_note_event("I delegate someone to post this!")
 #=>
 #["EVENT",
 # {:pubkey=>"1ed41a3ce33edfc580102abfbdc01d922f8c7697beee3e395aa7dcd7115a3372",
@@ -208,6 +223,14 @@ Nostr.verify_delegation_signature(delegatee_pubkey, tag)
 
 ### Reset the NIP-26 delegation
 ```ruby
-n.reset_delegation
+nostr.reset_delegation
 #=> nil
+```
+
+### Publish to Nostr
+
+Once you have build your event, you can broadcast it to the relay:
+
+```ruby
+nostr.test_post_event(event, 'wss://relay.damus.com')
 ```
