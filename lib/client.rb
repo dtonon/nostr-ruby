@@ -3,7 +3,9 @@ module Nostr
 
     attr_reader :public_key
 
-    def initialize(private_key)
+    def initialize(
+      private_key:
+    )
       @private_key = private_key
 
       unless @public_key

@@ -10,25 +10,28 @@ module Nostr
     end
 
     def initialize(
-      kind,
-      pubkey,
-      created_at,
-      tags = [],
-      content = nil,
-      options = {}
+      kind:,
+      pubkey:,
+      created_at: nil,
+      tags: [],
+      content: nil,
+      id: nil,
+      sig: nil,
+      pow: nil,
+      delegation: nil,
+      nip4_recipient: nil
     )
       @pubkey = pubkey
-      @created_at = created_at
+      @created_at = created_at ? created_at : Time.now.utc.to_i
       @kind = kind
       @tags = tags
       @content = content
       @id = id
       @sig = sig
 
-      # Optional
-      @pow = options[:pow] if options[:pow]
-      @delegation = options[:delegation] if options[:delegation]
-      @nip4_recipient = options[:nip4_recipient] if options[:nip4_recipient]
+      @pow = pow
+      @delegation = delegation
+      @nip4_recipient = nip4_recipient
     end
 
     # Create setter methods for each attribute name
