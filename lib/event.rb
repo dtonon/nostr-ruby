@@ -2,7 +2,7 @@ module Nostr
   class Event
     include CryptoTools
 
-    ATTRIBUTES = [:kind, :pubkey, :created_at, :tags, :content, :id, :sig, :pow, :delegation, :nip4_recipient]
+    ATTRIBUTES = [:kind, :pubkey, :created_at, :tags, :content, :id, :sig, :pow, :delegation, :recipient]
 
     # Create attr_reader for each attribute name
     ATTRIBUTES.each do |attribute|
@@ -19,7 +19,7 @@ module Nostr
       sig: nil,
       pow: nil,
       delegation: nil,
-      nip4_recipient: nil
+      recipient: nil
     )
       @pubkey = pubkey
       @created_at = created_at ? created_at : Time.now.utc.to_i
@@ -31,7 +31,7 @@ module Nostr
 
       @pow = pow
       @delegation = delegation
-      @nip4_recipient = nip4_recipient
+      @recipient = recipient
     end
 
     # Create setter methods for each attribute name
@@ -50,9 +50,9 @@ module Nostr
       reset!
     end
 
-    def nip4_recipient=(nip4_recipient)
-      return if @nip4_recipient == nip4_recipient
-      @nip4_recipient = nip4_recipient
+    def recipient=(recipient)
+      return if @recipient == recipient
+      @recipient = recipient
       @encrypted_content = nil
       reset!
     end
@@ -104,8 +104,8 @@ module Nostr
 
       # TODO Validate if the npub is correctly derivable from the private_key
 
-      if @nip4_recipient
-        @encrypted_content = CryptoTools.aes_256_cbc_encrypt(private_key, @nip4_recipient, @content)
+      if @recipient
+        @encrypted_content = CryptoTools.aes_256_cbc_encrypt(private_key, @recipient, @content)
       end
 
       if @delegation && !has_tag?("delegation")
@@ -147,7 +147,7 @@ module Nostr
       when Nostr::Kind::DIRECT_MESSAGE
         data = @encrypted_content.split('?iv=')[0]
         iv = @encrypted_content.split('?iv=')[1]
-        @content = CryptoTools.aes_256_cbc_decrypt(private_key, @nip4_recipient, data, iv)
+        @content = CryptoTools.aes_256_cbc_decrypt(private_key, @recipient, data, iv)
       else
         raise "Unable to decrypt a kind #{event.kind} event"
       end
