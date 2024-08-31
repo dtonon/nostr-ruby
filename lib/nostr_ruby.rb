@@ -1,6 +1,6 @@
 require_relative 'version'
-require_relative 'tools/custom_addr'
-require_relative 'tools/crypto_tools'
+require_relative 'custom_addr'
+require_relative 'crypto_tools'
 
 require 'ecdsa'
 require 'schnorr'
