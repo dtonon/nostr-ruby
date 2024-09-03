@@ -1,9 +1,9 @@
 $:.unshift File.expand_path('../lib', __FILE__)
-require 'nostr_ruby/version'
+require 'version'
 
 Gem::Specification.new do |s|
   s.name          = 'nostr_ruby'
-  s.version       = NostrRuby::VERSION
+  s.version       = Nostr::VERSION
   s.summary       = 'A Ruby library to interact with the Nostr protocol'
   s.description   = 'NostrRuby is a Ruby library to interact with the Nostr protocol. At this stage the focus is the creation of public events and private encrypted messages.'
   s.authors       = ['Daniele Tonon']
