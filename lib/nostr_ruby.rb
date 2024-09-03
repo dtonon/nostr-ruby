@@ -11,6 +11,7 @@ require 'unicode/emoji'
 require 'websocket-client-simple'
 
 require_relative 'kind'
+require_relative 'key'
 require_relative 'event'
 require_relative 'client'
 

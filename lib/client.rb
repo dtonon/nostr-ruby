@@ -1,34 +1,21 @@
 module Nostr
   class Client
 
+    attr_reader :private_key
     attr_reader :public_key
 
-    def initialize(
-      private_key:
-    )
+    def initialize(private_key:)
       @private_key = private_key
-
       unless @public_key
-        group = ECDSA::Group::Secp256k1
-        @public_key = group.generator.multiply_by_scalar(@private_key.to_i(16)).x.to_s(16).rjust(64, '0')
+        @public_key = Nostr::Key::get_public_key(@private_key)
       end
     end
 
-    def bech32_public_key
-      bech32_keys = {}
-      Nostr::Client.to_bech32(@public_key, 'npub')
+    def nsec
+      Nostr::Key.encode_private_key(@private_key)
     end
-
-    def self.to_hex(bech32_key)
-      public_addr = CustomAddr.new(bech32_key)
-      public_addr.to_scriptpubkey
-    end
-
-    def self.to_bech32(hex_key, hrp)
-      custom_addr = CustomAddr.new
-      custom_addr.scriptpubkey = hex_key
-      custom_addr.hrp = hrp
-      custom_addr.addr
+    def npub
+      Nostr::Key.encode_public_key(@public_key)
     end
 
     def sign(event)
@@ -39,9 +26,6 @@ module Nostr
       event.send("decrypt", private_key)
     end
 
-  private
-
-    attr_reader :private_key
 
   end
 end
