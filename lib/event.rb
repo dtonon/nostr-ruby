@@ -31,7 +31,15 @@ module Nostr
 
       @pow = pow
       @delegation = delegation
-      @recipient = recipient
+
+      if @kind == Nostr::Kind::DIRECT_MESSAGE
+        if recipient
+          @recipient = recipient
+          @tags << ["p", recipient]
+        else
+          @recipient = @tags.select{|t| t[0] == "p"}.first[1]
+        end
+      end
     end
 
     # Create setter methods for each attribute name
@@ -46,14 +54,15 @@ module Nostr
     def content=(content)
       return if @content == content
       @content = content
-      @encrypted_content = nil
       reset!
     end
 
     def recipient=(recipient)
       return if @recipient == recipient
+      @tags = @tags.delete_if { |t| t[0] == "p" && t[1] == @recipient }
       @recipient = recipient
-      @encrypted_content = nil
+      @tags << ["p", @recipient]
+      @content = nil
       reset!
     end
 
@@ -108,7 +117,7 @@ module Nostr
         @created_at,
         @kind,
         @tags,
-        @encrypted_content || @content
+        @content
       ]
     end
 
@@ -116,8 +125,8 @@ module Nostr
 
       # TODO Validate if the npub is correctly derivable from the private_key
 
-      if @recipient
-        @encrypted_content = CryptoTools.aes_256_cbc_encrypt(private_key, @recipient, @content)
+      if @kind == Nostr::Kind::DIRECT_MESSAGE
+        @content = CryptoTools.aes_256_cbc_encrypt(private_key, @recipient, @content)
       end
 
       if @delegation && !has_tag?("delegation")
@@ -157,8 +166,8 @@ module Nostr
     def decrypt(private_key)
       case self.kind
       when Nostr::Kind::DIRECT_MESSAGE
-        data = @encrypted_content.split('?iv=')[0]
-        iv = @encrypted_content.split('?iv=')[1]
+        data = @content.split('?iv=')[0]
+        iv = @content.split('?iv=')[1]
         @content = CryptoTools.aes_256_cbc_decrypt(private_key, @recipient, data, iv)
       else
         raise "Unable to decrypt a kind #{event.kind} event"
