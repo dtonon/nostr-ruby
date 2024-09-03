@@ -79,6 +79,18 @@ module Nostr
       @tags.each_slice(2).any? { |e| e.first == tag }
     end
 
+    def to_json
+      {
+        'kind': @kind,
+        'pubkey': @pubkey,
+        'created_at': @created_at,
+        'tags': @tags,
+        'content': @content,
+        'id': @id,
+        'sig': @sig,
+      }
+    end
+
     def match_pow_difficulty?
       self.match_pow_difficulty?(@id, pow)
     end
