@@ -27,6 +27,17 @@ module Nostr
       event.send("decrypt", private_key)
     end
 
+    def generate_delegation_tag(to:, conditions:)
+      delegation_message_sha256 = Digest::SHA256.hexdigest("nostr:delegation:#{to}:#{conditions}")
+      signature = Schnorr.sign(Array(delegation_message_sha256).pack('H*'), Array(@private_key).pack('H*')).encode.unpack('H*')[0]
+      [
+        "delegation",
+        @public_key,
+        conditions,
+        signature
+      ]
+    end
+
     def send(event, relay)
       response = nil
       ws = WebSocket::Client::Simple.connect relay

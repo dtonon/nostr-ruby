@@ -208,3 +208,28 @@ e = Nostr::Event.new(
   pow: 15,
 )
 ```
+
+### Create a NIP-26 delegation and use it
+```ruby
+delegator = Nostr::Client.new(private_key: delegator_key)
+
+delegatee = "b1d8dfd69fe8795042dbbc4d3f85938a01d4740c54d2daf11088c75c50ff19d9"
+conditions = "kind=1&created_at>#{Time.now.to_i}&created_at<#{(Time.now + 60*60).to_i}"
+delegation_tag = delegator.generate_delegation_tag(
+  to: delegatee,
+  conditions: conditions
+)
+
+# The `delegation_tag` is given to the delegatee so it can use it
+
+delegatee = Nostr::Client.new(private_key: delegatee_key)
+
+e = Nostr::Event.new(
+  kind: Nostr::Kind::SHORT_NOTE,
+  pubkey: delegatee.public_key,
+  content: "Hello Nostr!",
+  delegation: delegation_tag,
+)
+
+delegatee.sign(e)
+```

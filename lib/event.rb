@@ -66,24 +66,6 @@ module Nostr
       reset!
     end
 
-    def generate_delegation(delegatee_pubkey, conditions, private_key)
-      delegation_message_sha256 = Digest::SHA256.hexdigest("nostr:delegation:#{delegatee_pubkey}:#{conditions}")
-      delegation_sig = Schnorr.sign(Array(delegation_message_sha256).pack('H*'), Array(private_key).pack('H*')).encode.unpack('H*')[0]
-      delegation_tag = [
-        "delegation",
-        @public_key,
-        conditions,
-        delegation_sig
-      ]
-      delegation_tag
-    end
-
-    def set_delegation(delegatee_pubkey, conditions, private_key)
-      delegation_tag = generate_delegation(delegatee_pubkey, conditions, private_key)
-      @tags << delegation_tag
-      reset!
-    end
-
     def has_tag?(tag)
       @tags.each_slice(2).any? { |e| e.first == tag }
     end
@@ -129,8 +111,8 @@ module Nostr
         @content = CryptoTools.aes_256_cbc_encrypt(private_key, @recipient, @content)
       end
 
-      if @delegation && !has_tag?("delegation")
-        set_delegation(@delegation[:delegatee_pubkey], @delegation[:conditions], private_key)
+      if @delegation
+        @tags << @delegation
       end
 
       event_sha256_digest = nil
