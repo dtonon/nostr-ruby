@@ -12,11 +12,11 @@ module Nostr
     end
 
     def nsec
-      Nostr::Key.encode_private_key(@private_key)
+      Nostr::Bech32.encode_nsec(@private_key)
     end
 
     def npub
-      Nostr::Key.encode_public_key(@public_key)
+      Nostr::Bech32.encode_npub(@public_key)
     end
 
     def sign(event)

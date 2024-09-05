@@ -39,14 +39,14 @@ sk = Nostr::Key.generate_private_key
 pk = Nostr::Key.get_public_key(sk)
 # => "e7ded9bd42e7c74fcc6465962b919b7efcd5774ac6bea2ae6b81b2caa9d4d2e6"
 
-nsec = Nostr::Key.encode_private_key(sk)
+nsec = Nostr::Bech32.encode_nsec(sk)
 # => "nsec1szg0k0lzdcna2w0wxjwhpzgdxwx9ut5tgk0qfj8fwev0q0f0nuessml5ur"
 
-npub = Nostr::Key.encode_public_key(pk)
+npub = Nostr::Bech32.encode_npub(pk)
 # => "npub1ul0dn02zulr5lnryvktzhyvm0m7d2a62c6l29tntsxev42w56tnqksrtfu"
 
-hex = Nostr::Key.decode(npub)
-# => "e7ded9bd42e7c74fcc6465962b919b7efcd5774ac6bea2ae6b81b2caa9d4d2e6"
+hex = Nostr::Bech32.decode(npub)
+# => {:hrp=>"npub", :data=>"e7ded9bd42e7c74fcc6465962b919b7efcd5774ac6bea2ae6b81b2caa9d4d2e6"}
 ```
 
 ### Initialize a Client

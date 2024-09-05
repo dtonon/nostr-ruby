@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
 
   s.add_dependency 'base64', '~> 0.1.1'
-  s.add_dependency 'bech32', '~> 1.3.0'
+  s.add_dependency 'bech32', '~> 1.4.0'
   s.add_dependency 'bip-schnorr', '~> 0.4.0'
   s.add_dependency 'json', '~> 2.6.2'
   s.add_dependency 'unicode-emoji', '~> 3.3.1'
