@@ -38,6 +38,31 @@ sk = Nostr::Key.generate_private_key
 
 pk = Nostr::Key.get_public_key(sk)
 # => "e7ded9bd42e7c74fcc6465962b919b7efcd5774ac6bea2ae6b81b2caa9d4d2e6"
+```
+
+### Decode entities
+
+```ruby
+
+puplic_key = Nostr::Bech32.decode(npub)
+# => {:hrp=>"npub", :data=>"e7ded9bd42e7c74fcc6465962b919b7efcd5774ac6bea2ae6b81b2caa9d4d2e6"}
+
+nprofile_data = Nostr::Bech32.decode("nprofile1qqs8hhhhhc3dmrje73squpz255ape7t448w86f7ltqemca7m0p99spgprpmhxue69uhkgar0dehkutnwdaehgu339e3k7mf06ras84")
+# => {:hrp=>"nprofile", :data=>{:pubkey=>["7bdef7be22dd8e59f4600e044aa53a1cf975a9dc7d27df5833bc77db784a5805"], :relay=>["wss://dtonon.nostr1.com/"]}}
+
+note_data = Nostr::Bech32.decode("note1xzce08egncw3mcm8l8edas6rrhgfj9l5uwwv2hz03zym0m9eg5hsxuyajp")
+# => {:hrp=>"note", :data=>"30b1979f289e1d1de367f9f2dec3431dd09917f4e39cc55c4f8889b7ecb9452f"}
+
+nevent_data = Nostr::Bech32.decode("nevent1qqsrpvvhnu5fu8gaudnlnuk7cdp3m5yezl6w88x9t38c3zdhaju52tcpzpmhxue69uhkztnwdaejumr0dshsz9nhwden5te0vfjhvmewdehhxarjxyhxxmmd9uq3wamnwvaz7tmzd96xxmmfdejhytnnda3kjctv9ulrdeva")
+# => {:hrp=>"nevent", :data=> {:id=>["30b1979f289e1d1de367f9f2dec3431dd09917f4e39cc55c4f8889b7ecb9452f"], :relay=>["wss://a.nos.lol/", "wss://bevo.nostr1.com/", "wss://bitcoiner.social/"]}}
+
+naddr_data = Nostr::Bech32.decode("naddr1qvzqqqr4gupzq77777lz9hvwt86xqrsyf2jn588ewk5aclf8mavr80rhmduy5kq9qqdkc6t5w3kx2ttvdamx2ttxdaez6mr0denj6en0wfkkzaqxq5r99")
+# => => {:hrp=>"naddr", :data=>{:kind=>[30023], :author=>["7bdef7be22dd8e59f4600e044aa53a1cf975a9dc7d27df5833bc77db784a5805"], :identifier=>["little-love-for-long-format"]}}
+```
+
+### Encode entities
+
+```ruby
 
 nsec = Nostr::Bech32.encode_nsec(sk)
 # => "nsec1szg0k0lzdcna2w0wxjwhpzgdxwx9ut5tgk0qfj8fwev0q0f0nuessml5ur"
@@ -45,8 +70,27 @@ nsec = Nostr::Bech32.encode_nsec(sk)
 npub = Nostr::Bech32.encode_npub(pk)
 # => "npub1ul0dn02zulr5lnryvktzhyvm0m7d2a62c6l29tntsxev42w56tnqksrtfu"
 
-hex = Nostr::Bech32.decode(npub)
-# => {:hrp=>"npub", :data=>"e7ded9bd42e7c74fcc6465962b919b7efcd5774ac6bea2ae6b81b2caa9d4d2e6"}
+nprofile = Nostr::Bech32.encode_nprofile(
+  pubkey: "7bdef7be22dd8e59f4600e044aa53a1cf975a9dc7d27df5833bc77db784a5805",
+  relays: ["wss://dtonon.nostr1.com"],
+)
+# => "nprofile1qqs8hhhhhc3dmrje73squpz255ape7t448w86f7ltqemca7m0p99spgpzamhxue69uhkgar0dehkutnwdaehgu339e3k7mg60me8x"
+
+note = Nostr::Bech32.encode_note("30b1979f289e1d1de367f9f2dec3431dd09917f4e39cc55c4f8889b7ecb9452f")
+# => "note1xzce08egncw3mcm8l8edas6rrhgfj9l5uwwv2hz03zym0m9eg5hsxuyajp"
+
+nevent = Nostr::Bech32.encode_nevent(
+  id: "30b1979f289e1d1de367f9f2dec3431dd09917f4e39cc55c4f8889b7ecb9452f",
+  relays: ["wss://nos.lol"],
+)
+# => "nevent1qqsrpvvhnu5fu8gaudnlnuk7cdp3m5yezl6w88x9t38c3zdhaju52tcpp4mhxue69uhkummn9ekx7mqrqsqqqqqpux7e9q"
+
+naddr = Nostr::Bech32.encode_naddr(
+  author: "7bdef7be22dd8e59f4600e044aa53a1cf975a9dc7d27df5833bc77db784a5805",
+  identifier: "little-love-for-long-format",
+  kind: 30023
+)
+# => "naddr1qgs8hhhhhc3dmrje73squpz255ape7t448w86f7ltqemca7m0p99spgrqsqqqa28qqdkc6t5w3kx2ttvdamx2ttxdaez6mr0denj6en0wfkkzaqn2tjdj"
 ```
 
 ### Initialize a Client
