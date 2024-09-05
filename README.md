@@ -182,6 +182,7 @@ e = Nostr::Event.new(
 ```
 
 ### Create a direct message
+Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
 ```ruby
 recipient = "npub1ul0dn02zulr5lnryvktzhyvm0m7d2a62c6l29tntsxev42w56tnqksrtfu"
 
@@ -200,7 +201,8 @@ e = Nostr::Event.new(
 )
 ```
 
-### Decrypt a private message
+### Decrypt a direct message
+Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
 ```ruby
 e = {
   :kind=>4,
