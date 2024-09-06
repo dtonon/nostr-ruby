@@ -47,7 +47,7 @@ module Nostr
       define_method("#{attribute}=") do |value|
         return if instance_variable_get("@#{attribute}") == value
         instance_variable_set("@#{attribute}", value)
-        reset!
+        reset! unless attribute == :id || attribute == :sig
       end
     end
 
@@ -90,8 +90,6 @@ module Nostr
       pow.nil? || pow == [event_id].pack("H*").unpack("B*")[0].index('1')
     end
 
-  private
-
     def serialize
       [
         0,
@@ -103,57 +101,11 @@ module Nostr
       ]
     end
 
-    def sign(private_key)
-
-      # TODO Validate if the npub is correctly derivable from the private_key
-
-      if @kind == Nostr::Kind::DIRECT_MESSAGE
-        @content = CryptoTools.aes_256_cbc_encrypt(private_key, @recipient, @content)
-      end
-
-      if @delegation
-        @tags << @delegation
-      end
-
-      event_sha256_digest = nil
-      if @pow
-        nonce = 1
-        loop do
-          nonce_tag = ['nonce', nonce.to_s, @pow.to_s]
-          nonced_serialized_event = self.serialize.clone
-          nonced_serialized_event[4] = nonced_serialized_event[4] + [nonce_tag]
-          event_sha256_digest = Digest::SHA256.hexdigest(JSON.dump(nonced_serialized_event))
-          if Nostr::Event.match_pow_difficulty?(event_sha256_digest, @pow)
-            @tags << nonce_tag
-            break
-          end
-          nonce += 1
-        end
-      else
-        event_sha256_digest = Digest::SHA256.hexdigest(JSON.dump(self.serialize))
-      end
-
-      @id = event_sha256_digest
-      private_key = Array(private_key).pack('H*')
-      message = Array(@id).pack('H*')
-      @sig = Schnorr.sign(message, private_key).encode.unpack('H*')[0]
-      self
-    end
+  private
 
     def reset!
       @id = nil
       @sign = nil
-    end
-
-    def decrypt(private_key)
-      case self.kind
-      when Nostr::Kind::DIRECT_MESSAGE
-        data = @content.split('?iv=')[0]
-        iv = @content.split('?iv=')[1]
-        @content = CryptoTools.aes_256_cbc_decrypt(private_key, @recipient, data, iv)
-      else
-        raise "Unable to decrypt a kind #{event.kind} event"
-      end
     end
 
   end

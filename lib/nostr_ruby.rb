@@ -13,6 +13,7 @@ require_relative 'bech32'
 require_relative 'kind'
 require_relative 'key'
 require_relative 'event'
+require_relative 'signer'
 require_relative 'client'
 
 module Nostr

@@ -1,41 +1,42 @@
 module Nostr
   class Client
 
-    attr_reader :private_key
-    attr_reader :public_key
+    attr_reader :signer
 
-    def initialize(private_key:)
-      @private_key = private_key
-      unless @public_key
-        @public_key = Nostr::Key::get_public_key(@private_key)
+    def initialize(signer: nil, private_key: nil)
+      if signer
+        @signer = signer
+      elsif private_key
+        @signer = Nostr::Signer.new(private_key: private_key)
       end
     end
 
     def nsec
-      Nostr::Bech32.encode_nsec(@private_key)
+      signer.nsec
+    end
+
+    def private_key
+      signer.private_key
     end
 
     def npub
-      Nostr::Bech32.encode_npub(@public_key)
+      signer.npub
+    end
+
+    def public_key
+      signer.public_key
     end
 
     def sign(event)
-      event.send("sign", private_key)
+      signer.sign(event)
     end
 
     def decrypt(event)
-      event.send("decrypt", private_key)
+      signer.decrypt(event)
     end
 
     def generate_delegation_tag(to:, conditions:)
-      delegation_message_sha256 = Digest::SHA256.hexdigest("nostr:delegation:#{to}:#{conditions}")
-      signature = Schnorr.sign(Array(delegation_message_sha256).pack('H*'), Array(@private_key).pack('H*')).encode.unpack('H*')[0]
-      [
-        "delegation",
-        @public_key,
-        conditions,
-        signature
-      ]
+      signer.generate_delegation_tag(to, conditions)
     end
 
     def send(event, relay)

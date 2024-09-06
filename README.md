@@ -93,11 +93,16 @@ naddr = Nostr::Bech32.encode_naddr(
 # => "naddr1qgs8hhhhhc3dmrje73squpz255ape7t448w86f7ltqemca7m0p99spgrqsqqqa28qqdkc6t5w3kx2ttvdamx2ttxdaez6mr0denj6en0wfkkzaqn2tjdj"
 ```
 
-### Initialize a Client
+### Initialize Client
 
 ```ruby
 require "nostr_ruby"
 
+# Detailed version
+s = Nostr::Signer.new(private_key: Nostr::Key.generate_private_key)
+c = Nostr::Client.new(signer: s)
+
+# Compact version, under the hood Client creates a Signer
 c = Nostr::Client.new(private_key: Nostr::Key.generate_private_key)
 
 c.private_key
@@ -116,9 +121,8 @@ c.npub
 ### Create, sign and send an event
 
 ```ruby
-# Initialize a client
-c = Nostr::Client.new(private_key: 
-"7402b4b1ee09fb37b64ec2a958f1b7815d904c6dd44227bdef7912ef201af97d")
+# Initialize a client, under the hood Client creates a Signer
+c = Nostr::Client.new(private_key: "7402b4b1ee09fb37b64ec2a958f1b7815d904c6dd44227bdef7912ef201af97d")
 
 # Initialize an event
 e = Nostr::Event.new(
@@ -133,7 +137,7 @@ e = Nostr::Event.new(
 )
 
 # Sign the event
-c.sign(e)
+e = c.sign(e)
 
 # Send the event
 c.send(e, "wss://nos.lol")
@@ -200,6 +204,7 @@ e = Nostr::Event.new(
   tags: [["e", target_event]],
 )
 
+# You can also use emoji
 e2 = Nostr::Event.new(
   kind: Nostr::Kind::REACTION,
   pubkey: c.public_key,
@@ -219,7 +224,7 @@ e = Nostr::Event.new(
 )
 ```
 
-### Create a NIP-26 delegation and use it
+### Create an event with a NIP-26 delegation
 ```ruby
 delegator = Nostr::Client.new(private_key: delegator_key)
 
@@ -266,7 +271,7 @@ e = Nostr::Event.new(
 ### Decrypt a direct message
 Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
 ```ruby
-e = {
+payload = {
   :kind=>4,
   :pubkey=>"a19f3c16b6e857d2b673c67eea293431fc175895513ca2f687a717152a5da466",
   :created_at=>1725387307,
@@ -275,6 +280,7 @@ e = {
   :id=>"b91b3fb40128112c38dc54168b9f601c22bf8fcae6e70bb2a5f53e7f3ae44388",
   :sig=>"73edf5a6acbefdd3d76f28ba90faaabe348a24c798f8fa33797eec29e2404c33a455815a59472ecd023441df38d815f83d81b95b8cb2f2c88a52982c8f7301e9"
 }
+e = Nostr::Event.new(**payload)
 
 c.decrypt(e)
 puts e.content
