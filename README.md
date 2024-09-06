@@ -157,7 +157,7 @@ e = Nostr::Event.new(
 )
 ```
 
-### Create a note
+### Post a note
 ```ruby
 e = Nostr::Event.new(
   kind: Nostr::Kind::SHORT_NOTE,
@@ -181,44 +181,6 @@ e = Nostr::Event.new(
 )
 ```
 
-### Create a direct message
-Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
-```ruby
-recipient = "npub1ul0dn02zulr5lnryvktzhyvm0m7d2a62c6l29tntsxev42w56tnqksrtfu"
-
-e = Nostr::Event.new(
-  kind: Nostr::Kind::DIRECT_MESSAGE,
-  pubkey: c.public_key,
-  recipient: recipient,
-  content: "Hello Alice!"
-)
-
-e = Nostr::Event.new(
-  kind: Nostr::Kind::DIRECT_MESSAGE,
-  pubkey: c.public_key,
-  tags: [["p", Nostr::Key.decode(recipient)]],
-  content: "Hello Alice!"
-)
-```
-
-### Decrypt a direct message
-Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
-```ruby
-e = {
-  :kind=>4,
-  :pubkey=>"a19f3c16b6e857d2b673c67eea293431fc175895513ca2f687a717152a5da466",
-  :created_at=>1725387307,
-  :tags=>[["p", "e7ded9bd42e7c74fcc6465962b919b7efcd5774ac6bea2ae6b81b2caa9d4d2e6"]],
-  :content=>"Nd7n/wId1oiprUCC4WWwNw==?iv=7gIRExcyO1xystretLIPnQ==",
-  :id=>"b91b3fb40128112c38dc54168b9f601c22bf8fcae6e70bb2a5f53e7f3ae44388",
-  :sig=>"73edf5a6acbefdd3d76f28ba90faaabe348a24c798f8fa33797eec29e2404c33a455815a59472ecd023441df38d815f83d81b95b8cb2f2c88a52982c8f7301e9"
-}
-
-c.decrypt(e)
-puts e.content
-=> "Hello Alice!"
-```
-
 ### Delete an event
 ```ruby
 event_to_delete = "b91b3fb40128112c38dc54168b9f601c22bf8fcae6e70bb2a5f53e7f3ae44388"
@@ -235,12 +197,14 @@ e = Nostr::Event.new(
   kind: Nostr::Kind::REACTION,
   pubkey: c.public_key,
   content: "+",
+  tags: [["e", target_event]],
 )
 
 e2 = Nostr::Event.new(
   kind: Nostr::Kind::REACTION,
   pubkey: c.public_key,
   content: "🔥",
+  tags: [["e", target_event]],
 )
 ```
 
@@ -278,4 +242,41 @@ e = Nostr::Event.new(
 )
 
 delegatee.sign(e)
+```
+### Send a direct message
+Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
+```ruby
+recipient = "npub1ul0dn02zulr5lnryvktzhyvm0m7d2a62c6l29tntsxev42w56tnqksrtfu"
+
+e = Nostr::Event.new(
+  kind: Nostr::Kind::DIRECT_MESSAGE,
+  pubkey: c.public_key,
+  recipient: Nostr::Bech32.decode(recipient)[:data],
+  content: "Hello Alice!"
+)
+
+e = Nostr::Event.new(
+  kind: Nostr::Kind::DIRECT_MESSAGE,
+  pubkey: c.public_key,
+  tags: [["p", Nostr::Bech32.decode(recipient)[:data]]],
+  content: "Hello Alice!"
+)
+```
+
+### Decrypt a direct message
+Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
+```ruby
+e = {
+  :kind=>4,
+  :pubkey=>"a19f3c16b6e857d2b673c67eea293431fc175895513ca2f687a717152a5da466",
+  :created_at=>1725387307,
+  :tags=>[["p", "e7ded9bd42e7c74fcc6465962b919b7efcd5774ac6bea2ae6b81b2caa9d4d2e6"]],
+  :content=>"Nd7n/wId1oiprUCC4WWwNw==?iv=7gIRExcyO1xystretLIPnQ==",
+  :id=>"b91b3fb40128112c38dc54168b9f601c22bf8fcae6e70bb2a5f53e7f3ae44388",
+  :sig=>"73edf5a6acbefdd3d76f28ba90faaabe348a24c798f8fa33797eec29e2404c33a455815a59472ecd023441df38d815f83d81b95b8cb2f2c88a52982c8f7301e9"
+}
+
+c.decrypt(e)
+puts e.content
+=> "Hello Alice!"
 ```
