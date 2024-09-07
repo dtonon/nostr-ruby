@@ -122,7 +122,10 @@ c.npub
 
 ```ruby
 # Initialize a client, under the hood Client creates a Signer
-c = Nostr::Client.new(private_key: "7402b4b1ee09fb37b64ec2a958f1b7815d904c6dd44227bdef7912ef201af97d")
+c = Nostr::Client.new(
+  private_key: "7402b4b1ee09fb37b64ec2a958f1b7815d904c6dd44227bdef7912ef201af97d",
+  relay: "wss://nos.lol"
+)
 
 # Initialize an event
 e = Nostr::Event.new(
@@ -139,8 +142,27 @@ e = Nostr::Event.new(
 # Sign the event
 e = c.sign(e)
 
-# Send the event
-c.send(e, "wss://nos.lol")
+# Set the open callback
+c.on_open do |event|
+  puts 'Connection opened'
+  puts 'Publish event...'
+  c.publish(e)
+end
+
+# Set the response callback
+c.on_message do |event|
+  puts "Response: #{event}"
+  c.stop
+end
+
+# Set the error callback
+c.on_error do |message|
+  puts "Error: #{message}"
+  c.stop
+end
+
+# Connect and send the event
+c.run
 
 ```
 

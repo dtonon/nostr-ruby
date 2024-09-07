@@ -18,5 +18,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'bip-schnorr', '~> 0.4.0'
   s.add_dependency 'json', '~> 2.6.2'
   s.add_dependency 'unicode-emoji', '~> 3.3.1'
-  s.add_dependency 'websocket-client-simple', '~> 0.6.0'
+  s.add_dependency 'event_emitter', '~> 0.2'
+  s.add_dependency 'faye-websocket', '~> 0.11'
 end
