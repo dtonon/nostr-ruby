@@ -14,6 +14,10 @@ module Nostr
       @on_error = nil
       @on_close = nil
       @running = false
+      @expected_response_id = nil
+      @response_condition = ConditionVariable.new
+      @response_mutex = Mutex.new
+      @event_to_publish = nil
 
       if signer
         @signer = signer
@@ -76,10 +80,23 @@ module Nostr
           @ws.on :open do |event|
             puts 'WebSocket connection opened'
             @on_open.call(event) if @on_open
+
+            # Publish the event after the connection is opened
+            publish(@event_to_publish) if @event_to_publish
           end
 
           # Event when a new message is received
           @ws.on :message do |event|
+            data = JSON.parse(event.data)
+
+            if data[1] == @expected_response_id
+              @last_response = data
+              # Signal that a response has been received
+              @response_mutex.synchronize do
+                @response_condition.signal
+              end
+            end
+
             @on_message.call(event.data) if @on_message
           end
 
@@ -92,6 +109,7 @@ module Nostr
           @ws.on :close do |event|
             @on_close.call(event.code, event.reason) if @on_close
             @running = false
+            EM.stop
           end
         end
       end
@@ -110,6 +128,19 @@ module Nostr
     def publish(event)
       payload = ['EVENT', event.to_json].to_json
       @ws.send(payload) if @ws
+    end
+
+    def publish_and_wait(event)
+      @event_to_publish = event # Store the event to publish
+      @expected_response_id = event.id # Set the expected response ID based on the event
+      start unless running?
+
+      # Wait for the response using the condition variable
+      @response_mutex.synchronize do
+        @response_condition.wait(@response_mutex) # Wait until signaled
+      end
+
+      @last_response
     end
 
   end

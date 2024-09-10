@@ -142,6 +142,9 @@ e = Nostr::Event.new(
 # Sign the event
 e = c.sign(e)
 
+# - - - - - - - - - - - - - -
+# Full async mode
+
 # Set the open callback
 c.on_open do |event|
   puts 'Connection opened'
@@ -162,6 +165,13 @@ end
 
 # Connect and send the event
 c.start
+# ... do other async stuff
+c.stop
+
+# - - - - - - - - - - - - - -
+# Compact sync mode
+
+c.publish_and_wait(e)
 # ... do other stuff
 c.stop
 
