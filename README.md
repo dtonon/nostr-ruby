@@ -152,7 +152,6 @@ end
 # Set the response callback
 c.on_message do |event|
   puts "Response: #{event}"
-  c.stop
 end
 
 # Set the error callback
@@ -162,7 +161,9 @@ c.on_error do |message|
 end
 
 # Connect and send the event
-c.run
+c.start
+# ... do other stuff
+c.stop
 
 ```
 

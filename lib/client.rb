@@ -1,5 +1,6 @@
 require 'faye/websocket'
 require 'eventmachine'
+require 'thread'
 
 module Nostr
   class Client
@@ -12,6 +13,7 @@ module Nostr
       @on_message = nil
       @on_error = nil
       @on_close = nil
+      @running = false
 
       if signer
         @signer = signer
@@ -64,35 +66,45 @@ module Nostr
       @on_close = block
     end
 
-    def run
-      EM.run do
-        @ws = Faye::WebSocket::Client.new(@relay)
+    def start
+      @running = true
+      @thread = Thread.new do
+        EM.run do
+          @ws = Faye::WebSocket::Client.new(@relay)
 
-        # Event when the connection is opened
-        @ws.on :open do |event|
-          @on_open.call(event) if @on_open
-        end
+          # Event when the connection is opened
+          @ws.on :open do |event|
+            puts 'WebSocket connection opened'
+            @on_open.call(event) if @on_open
+          end
 
-        # Event when a new message is received
-        @ws.on :message do |event|
-          @on_message.call(event.data) if @on_message
-        end
+          # Event when a new message is received
+          @ws.on :message do |event|
+            @on_message.call(event.data) if @on_message
+          end
 
-        # Event when an error occurs
-        @ws.on :error do |event|
-          @on_error.call(event.message) if @on_error
-        end
+          # Event when an error occurs
+          @ws.on :error do |event|
+            @on_error.call(event.message) if @on_error
+          end
 
-        # Event when the connection is closed
-        @ws.on :close do |event|
-          @on_close.call(event.code, event.reason) if @on_close
-          EM.stop # Stop the EventMachine loop
+          # Event when the connection is closed
+          @ws.on :close do |event|
+            @on_close.call(event.code, event.reason) if @on_close
+            @running = false
+          end
         end
       end
     end
 
+    def running?
+      @running
+    end
+
     def stop
+      @running = false
       @ws.close if @ws
+      @thread.join if @thread
     end
 
     def publish(event)
