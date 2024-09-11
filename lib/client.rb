@@ -7,8 +7,16 @@ module Nostr
 
     attr_reader :signer
 
-    def initialize(signer: nil, private_key: nil, relay: nil)
+    def initialize(signer: nil, private_key: nil, relay: nil, context: Context.new(timeout: 5))
+      if signer
+        @signer = signer
+      elsif private_key
+        @signer = Nostr::Signer.new(private_key: private_key)
+      end
+
       @relay = relay
+      @context = context
+
       @on_open = nil
       @on_message = nil
       @on_error = nil
@@ -18,12 +26,6 @@ module Nostr
       @response_condition = ConditionVariable.new
       @response_mutex = Mutex.new
       @event_to_publish = nil
-
-      if signer
-        @signer = signer
-      elsif private_key
-        @signer = Nostr::Signer.new(private_key: private_key)
-      end
     end
 
     def nsec
@@ -70,7 +72,7 @@ module Nostr
       @on_close = block
     end
 
-    def start
+    def start(context: @context)
       @running = true
       @thread = Thread.new do
         EM.run do
@@ -107,12 +109,19 @@ module Nostr
 
           # Event when the connection is closed
           @ws.on :close do |event|
+            puts "WebSocket connection closed"
             @on_close.call(event.code, event.reason) if @on_close
             @running = false
             EM.stop
           end
         end
       end
+
+      # Wait for the connection to be established or for the context to be canceled
+      if context
+        context.wait { @running }
+      end
+
     end
 
     def running?
@@ -130,14 +139,27 @@ module Nostr
       @ws.send(payload) if @ws
     end
 
-    def publish_and_wait(event)
+    def publish_and_wait(event, context: @context)
       @event_to_publish = event # Store the event to publish
       @expected_response_id = event.id # Set the expected response ID based on the event
       start unless running?
 
+      if context
+        Thread.new do
+          context.wait { context.canceled || context.timed_out? }
+          stop if context.canceled || context.timed_out?
+        end
+      end
+
       # Wait for the response using the condition variable
       @response_mutex.synchronize do
-        @response_condition.wait(@response_mutex) # Wait until signaled
+        if @response_condition.wait(@response_mutex, context&.timeout || 5)
+          @last_response
+        else
+          raise Timeout::Error.new("Operation timed out") if context&.timed_out?
+          raise StandardError.new("Operation was canceled") if context&.canceled
+          nil
+        end
       end
 
       @last_response

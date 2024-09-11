@@ -10,6 +10,7 @@ require 'unicode/emoji'
 require 'websocket-client-simple'
 
 require_relative 'bech32'
+require_relative 'context'
 require_relative 'kind'
 require_relative 'key'
 require_relative 'event'
