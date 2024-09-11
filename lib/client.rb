@@ -139,12 +139,18 @@ module Nostr
       @ws.send(payload) if @ws
     end
 
-    def publish_and_wait(event, context: @context)
+    def publish_and_wait(event, context: @context, close_on_finish: false)
       @event_to_publish = event # Store the event to publish
       @expected_response_id = event.id # Set the expected response ID based on the event
-      start unless running?
+      @last_response = nil
 
-      if context
+      if running?
+        publish(@event_to_publish)
+      else
+        start
+      end
+
+      if close_on_finish && running? && context
         Thread.new do
           context.wait { context.canceled || context.timed_out? }
           stop if context.canceled || context.timed_out?
@@ -162,7 +168,6 @@ module Nostr
         end
       end
 
-      @last_response
     end
 
   end
