@@ -146,33 +146,26 @@ e = c.sign(e)
 # Full async mode
 
 # Set the open callback
-c.on_open do |event|
-  puts 'Connection opened'
+c.on :connect do |event|
   puts 'Publish event...'
   c.publish(e)
 end
 
 # Set the response callback
-c.on_message do |event|
+c.on :message do |event|
   puts "Response: #{event}"
 end
 
-# Set the error callback
-c.on_error do |message|
-  puts "Error: #{message}"
-  c.stop
-end
-
 # Connect and send the event
-c.start
-# ... do other async stuff
+c.connect
+c.publish(e)
 c.stop
 
 # - - - - - - - - - - - - - -
 # Compact sync mode
 
+c.connect
 c.publish_and_wait(e)
-# ... do other stuff
 c.stop
 
 ```

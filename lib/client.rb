@@ -1,9 +1,9 @@
+require 'event_emitter'
 require 'faye/websocket'
-require 'eventmachine'
-require 'thread'
 
 module Nostr
   class Client
+    include EventEmitter
 
     attr_reader :signer
 
@@ -17,15 +17,21 @@ module Nostr
       @relay = relay
       @context = context
 
-      @on_open = nil
-      @on_message = nil
-      @on_error = nil
-      @on_close = nil
       @running = false
       @expected_response_id = nil
       @response_condition = ConditionVariable.new
       @response_mutex = Mutex.new
       @event_to_publish = nil
+
+      @outbound_channel = EventMachine::Channel.new
+      @inbound_channel = EventMachine::Channel.new
+
+      @inbound_channel.subscribe do |msg|
+        emit :connect, msg[:relay]              if msg[:type] == :open
+        emit :message, msg[:data]               if msg[:type] == :message
+        emit :error,   msg[:message]            if msg[:type] == :error
+        emit :close,   msg[:code], msg[:reason] if msg[:type] == :close
+      end
     end
 
     def nsec
@@ -56,64 +62,30 @@ module Nostr
       signer.generate_delegation_tag(to, conditions)
     end
 
-    def on_open(&block)
-      @on_open = block
-    end
-
-    def on_message(&block)
-      @on_message = block
-    end
-
-    def on_error(&block)
-      @on_error = block
-    end
-
-    def on_close(&block)
-      @on_close = block
-    end
-
-    def start(context: @context)
+    def connect(context: @context)
       @running = true
       @thread = Thread.new do
         EM.run do
-          @ws = Faye::WebSocket::Client.new(@relay)
+          @ws_client = Faye::WebSocket::Client.new(@relay)
 
-          # Event when the connection is opened
-          @ws.on :open do |event|
-            puts 'WebSocket connection opened'
-            @on_open.call(event) if @on_open
+          @outbound_channel.subscribe { |msg| @ws_client.send(msg) && emit(:send, msg) }
 
-            # Publish the event after the connection is opened
-            publish(@event_to_publish) if @event_to_publish
+          @ws_client.on :open do
+            @inbound_channel.push(type: :open, relay: @relay)
           end
 
-          # Event when a new message is received
-          @ws.on :message do |event|
-            data = JSON.parse(event.data)
-
-            if data[1] == @expected_response_id
-              @last_response = data
-              # Signal that a response has been received
-              @response_mutex.synchronize do
-                @response_condition.signal
-              end
-            end
-
-            @on_message.call(event.data) if @on_message
+          @ws_client.on :message do |event|
+            @inbound_channel.push(type: :message, data: event.data)
           end
 
-          # Event when an error occurs
-          @ws.on :error do |event|
-            @on_error.call(event.message) if @on_error
+          @ws_client.on :error do |event|
+            @inbound_channel.push(type: :error, message: event.message)
           end
 
-          # Event when the connection is closed
-          @ws.on :close do |event|
-            puts "WebSocket connection closed"
-            @on_close.call(event.code, event.reason) if @on_close
-            @running = false
-            EM.stop
+          @ws_client.on :close do |event|
+            @inbound_channel.push(type: :close, code: event.code, reason: event.reason)
           end
+
         end
       end
 
@@ -128,46 +100,45 @@ module Nostr
       @running
     end
 
-    def stop
+    def close
       @running = false
-      @ws.close if @ws
+      @ws_client.close if @ws_client
+      EventMachine.stop if EventMachine.reactor_running?
       @thread.join if @thread
     end
 
     def publish(event)
-      payload = ['EVENT', event.to_json].to_json
-      @ws.send(payload) if @ws
+      return false unless running?
+      @outbound_channel.push(['EVENT', event.to_json].to_json)
+      return true
     end
 
     def publish_and_wait(event, context: @context, close_on_finish: false)
-      @event_to_publish = event # Store the event to publish
-      @expected_response_id = event.id # Set the expected response ID based on the event
-      @last_response = nil
+      return false unless running?
 
-      if running?
-        publish(@event_to_publish)
-      else
-        start
-      end
+      response = nil
+      @outbound_channel.push(['EVENT', event.to_json].to_json)
 
-      if close_on_finish && running? && context
-        Thread.new do
-          context.wait { context.canceled || context.timed_out? }
-          stop if context.canceled || context.timed_out?
+      response_thread = Thread.new do
+        @response_mutex.synchronize do
+          @response_condition.wait(@response_mutex) # Wait for a response
         end
       end
 
-      # Wait for the response using the condition variable
-      @response_mutex.synchronize do
-        if @response_condition.wait(@response_mutex, context&.timeout || 5)
-          @last_response
-        else
-          raise Timeout::Error.new("Operation timed out") if context&.timed_out?
-          raise StandardError.new("Operation was canceled") if context&.canceled
-          nil
+      @inbound_channel.subscribe do |message|
+        if message[:type] == :message && message[:data]
+          data = JSON.parse(message[:data])
+          if data[1] == event.id
+            response = data
+            @response_condition.signal
+          end
         end
       end
 
+      response_thread.join
+      stop if close_on_finish
+
+      response
     end
 
   end
