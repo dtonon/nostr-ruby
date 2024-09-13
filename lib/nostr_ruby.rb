@@ -14,6 +14,7 @@ require_relative 'context'
 require_relative 'kind'
 require_relative 'key'
 require_relative 'event'
+require_relative 'filter'
 require_relative 'signer'
 require_relative 'client'
 

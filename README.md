@@ -312,3 +312,19 @@ c.decrypt(e)
 puts e.content
 => "Hello Alice!"
 ```
+
+### Create a subscribtion to receive events
+
+```ruby
+filter = Nostr::Filter.new(
+  kinds: [1],
+  authors: ["a19f3c16b6e857d2b673c67eea293431fc175895513ca2f687a717152a5da466"],
+  since: Time.now - (60*60*24), # 24 hours ago
+  limit: 10
+)
+c.on :message do |message|
+  puts ">> #{message}"
+end
+c.subscribe(filter: filter)
+c.connect
+```

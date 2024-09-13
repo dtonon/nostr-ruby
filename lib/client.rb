@@ -7,6 +7,7 @@ module Nostr
     include EventWizard
 
     attr_reader :signer
+    attr_reader :subscriptions
 
     def initialize(signer: nil, private_key: nil, relay: nil, context: Context.new(timeout: 5))
       initialize_event_emitter
@@ -26,6 +27,7 @@ module Nostr
       @response_mutex = Mutex.new
       @event_to_publish = nil
 
+      @subscriptions = {}
       @outbound_channel = EventMachine::Channel.new
       @inbound_channel = EventMachine::Channel.new
 
@@ -142,6 +144,21 @@ module Nostr
       stop if close_on_finish
 
       response
+    end
+
+    def subscribe(subscription_id: SecureRandom.hex, filter: Filter.new)
+      @subscriptions[subscription_id] = filter
+      @outbound_channel.push(["REQ", subscription_id, filter.to_h].to_json)
+      @subscriptions[subscription_id]
+    end
+
+    def unsubscribe(subscription_id)
+      @subscriptions.delete(subscription_id)
+      @outbound_channel.push(["CLOSE", subscription_id].to_json)
+    end
+
+    def unsubscribe_all
+      @subscriptions.each{|s| unsubscribe(s[0])}
     end
 
   end
