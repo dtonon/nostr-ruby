@@ -1,13 +1,16 @@
-require 'event_emitter'
+require_relative 'event_wizard'
 require 'faye/websocket'
 
 module Nostr
+
   class Client
-    include EventEmitter
+    include EventWizard
 
     attr_reader :signer
 
     def initialize(signer: nil, private_key: nil, relay: nil, context: Context.new(timeout: 5))
+      initialize_event_emitter
+
       if signer
         @signer = signer
       elsif private_key
