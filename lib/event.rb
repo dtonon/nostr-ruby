@@ -9,6 +9,10 @@ module Nostr
       attr_reader attribute
     end
 
+    attr_reader :errors
+
+    class ValidationError < StandardError; end
+
     def initialize(
       kind:,
       pubkey:,
@@ -99,6 +103,73 @@ module Nostr
         @tags,
         @content
       ]
+    end
+
+    def signable?
+      @errors = []
+
+      # Check mandatory fields
+      @errors << "Kind is missing" if @kind.nil?
+      @errors << "Pubkey is missing" if @pubkey.nil?
+      @errors << "Created at is missing" if @created_at.nil?
+
+      # Type validations
+      @errors << "Kind must be an integer" unless @kind.is_a?(Integer)
+      @errors << "Pubkey must be a string" unless @pubkey.is_a?(String)
+      if @created_at
+        # Check if it's a valid Unix timestamp or can be converted to one
+        begin
+          timestamp = if @created_at.is_a?(Time)
+            @created_at.to_i
+          elsif @created_at.is_a?(Integer)
+            @created_at
+          elsif @created_at.respond_to?(:to_time)
+            @created_at.to_time.to_i
+          else
+            raise ArgumentError
+          end
+
+          # Validate timestamp range
+          @errors << "Created at is not a valid timestamp" unless
+            timestamp.is_a?(Integer) &&
+            timestamp >= 0
+        rescue
+          @errors << "Created at must be a valid datetime or Unix timestamp"
+        end
+      end
+      @errors << "Tags must be an array" unless @tags.is_a?(Array)
+
+      @errors << "Content must be a string" if @content && !@content.is_a?(String)
+      @errors << "ID must be a string" if @id && !@id.is_a?(String)
+      @errors << "Signature must be a string" if @sig && !@sig.is_a?(String)
+      @errors << "POW must be an integer" if @pow && !@pow.is_a?(Integer)
+      @errors << "Delegation must be an array" if @delegation && !@delegation.is_a?(Array)
+      @errors << "Recipient must be a string" if @recipient && !@recipient.is_a?(String)
+
+      if @errors.any?
+        raise ValidationError, @errors.join(", ")
+      end
+
+      true
+    end
+
+    def valid?
+      begin
+        signable?
+      rescue ValidationError => e
+        return false
+      end
+
+      # Additional checks for a valid signed event
+      @errors = []
+      @errors << "ID is missing" if @id.nil?
+      @errors << "Signature is missing" if @sig.nil?
+
+      if @errors.any?
+        raise ValidationError, @errors.join(", ")
+      end
+
+      true
     end
 
   private

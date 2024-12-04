@@ -29,6 +29,8 @@ module Nostr
 
     def sign(event)
 
+      raise ArgumentError, "Event is not signable" unless event.signable?
+
       # TODO Validate if the npub is correctly derivable from the private_key
 
       if event.kind == Nostr::Kind::DIRECT_MESSAGE
