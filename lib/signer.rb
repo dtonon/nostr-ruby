@@ -20,14 +20,6 @@ module Nostr
     end
 
     def sign(event)
-      event.send("sign", private_key)
-    end
-
-    def decrypt(event)
-      event.send("decrypt", private_key)
-    end
-
-    def sign(event)
 
       raise ArgumentError, "Event is not signable" unless event.signable?
 
