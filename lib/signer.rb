@@ -25,7 +25,7 @@ module Nostr
 
       event.pubkey = @public_key if event.pubkey.nil? || event.pubkey.empty?
 
-      # TODO Validate if the npub is correctly derivable from the private_key
+      raise ArgumentError, "Pubkey doesn't match the private key" unless event.pubkey == @public_key
 
       if event.kind == Nostr::Kind::DIRECT_MESSAGE
         puts "event.inspect => #{event.inspect}"
