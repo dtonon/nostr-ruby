@@ -15,7 +15,7 @@ module Nostr
 
     def initialize(
       kind:,
-      pubkey:,
+      pubkey: nil,
       created_at: nil,
       tags: [],
       content: nil,
@@ -110,12 +110,11 @@ module Nostr
 
       # Check mandatory fields
       @errors << "Kind is missing" if @kind.nil?
-      @errors << "Pubkey is missing" if @pubkey.nil?
       @errors << "Created at is missing" if @created_at.nil?
 
       # Type validations
+      @errors << "Pubkey must be a string" if @pubkey && !@pubkey.is_a?(String)
       @errors << "Kind must be an integer" unless @kind.is_a?(Integer)
-      @errors << "Pubkey must be a string" unless @pubkey.is_a?(String)
       if @created_at
         # Check if it's a valid Unix timestamp or can be converted to one
         begin
@@ -164,6 +163,7 @@ module Nostr
       @errors = []
       @errors << "ID is missing" if @id.nil?
       @errors << "Signature is missing" if @sig.nil?
+      @errors << "Pubkey is missing" if @pubkey.nil?
 
       if @errors.any?
         raise ValidationError, @errors.join(", ")

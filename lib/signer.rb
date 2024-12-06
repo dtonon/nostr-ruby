@@ -23,6 +23,8 @@ module Nostr
 
       raise ArgumentError, "Event is not signable" unless event.signable?
 
+      event.pubkey = @public_key if event.pubkey.nil? || event.pubkey.empty?
+
       # TODO Validate if the npub is correctly derivable from the private_key
 
       if event.kind == Nostr::Kind::DIRECT_MESSAGE
