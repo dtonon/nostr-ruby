@@ -107,9 +107,12 @@ module Nostr
 
     def close
       @running = false
-      @ws_client.close if @ws_client
-      EventMachine.stop if EventMachine.reactor_running?
-      @thread.join if @thread
+      EM.next_tick do
+        @ws_client.close if @ws_client
+        EM.add_timer(0.1) do
+          EM.stop if EM.reactor_running?
+        end
+      end
     end
 
     def publish(event)
