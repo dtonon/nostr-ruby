@@ -7,7 +7,9 @@ module Nostr
     include EventWizard
 
     attr_reader :signer
+    attr_reader :relay
     attr_reader :subscriptions
+
 
     def initialize(signer: nil, private_key: nil, relay: nil, context: Context.new(timeout: 5))
       initialize_event_emitter
@@ -32,10 +34,22 @@ module Nostr
       @inbound_channel = EventMachine::Channel.new
 
       @inbound_channel.subscribe do |msg|
-        emit :connect, msg[:relay]              if msg[:type] == :open
-        emit :message, msg[:data]               if msg[:type] == :message
-        emit :error,   msg[:message]            if msg[:type] == :error
-        emit :close,   msg[:code], msg[:reason] if msg[:type] == :close
+        case msg[:type]
+        when :open
+          emit :connect, msg[:relay]
+        when :message
+          parsed_data = Nostr::MessageHandler.handle(msg[:data])
+          emit :message, parsed_data
+          emit :event, parsed_data if parsed_data.type == "EVENT"
+          emit :ok, parsed_data if parsed_data.type == "OK"
+          emit :eose, parsed_data if parsed_data.type == "EOSE"
+          emit :closed, parsed_data if parsed_data.type == "CLOSED"
+          emit :notice, parsed_data if parsed_data.type == "NOTICE"
+        when :error
+          emit :error, msg[:message]
+        when :close
+          emit :close, msg[:code], msg[:reason]
+        end
       end
     end
 
@@ -68,7 +82,6 @@ module Nostr
     end
 
     def connect(context: @context)
-      @running = true
       @thread = Thread.new do
         EM.run do
           @ws_client = Faye::WebSocket::Client.new(@relay)
@@ -76,6 +89,7 @@ module Nostr
           @outbound_channel.subscribe { |msg| @ws_client.send(msg) && emit(:send, msg) }
 
           @ws_client.on :open do
+            @running = true
             @inbound_channel.push(type: :open, relay: @relay)
           end
 
@@ -88,6 +102,7 @@ module Nostr
           end
 
           @ws_client.on :close do |event|
+            context.cancel
             @inbound_channel.push(type: :close, code: event.code, reason: event.reason)
           end
 
@@ -128,23 +143,23 @@ module Nostr
       @outbound_channel.push(['EVENT', event.to_json].to_json)
 
       response_thread = Thread.new do
-        @response_mutex.synchronize do
-          @response_condition.wait(@response_mutex) # Wait for a response
-        end
-      end
-
-      @inbound_channel.subscribe do |message|
-        if message[:type] == :message && message[:data]
-          data = JSON.parse(message[:data])
-          if data[1] == event.id
-            response = data
-            @response_condition.signal
+        context.wait do
+          @response_mutex.synchronize do
+            @response_condition.wait(@response_mutex) # Wait for a response
           end
         end
       end
 
+      @inbound_channel.subscribe do |message|
+        parsed_data = Nostr::MessageHandler.handle(message[:data])
+        if parsed_data.type == "OK" && parsed_data.event_id == event.id
+          response = parsed_data
+          @response_condition.signal
+        end
+      end
+
       response_thread.join
-      stop if close_on_finish
+      close if close_on_finish
 
       response
     end
@@ -153,6 +168,7 @@ module Nostr
       @subscriptions[subscription_id] = filter
       @outbound_channel.push(["REQ", subscription_id, filter.to_h].to_json)
       @subscriptions[subscription_id]
+      subscription_id
     end
 
     def unsubscribe(subscription_id)

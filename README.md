@@ -148,25 +148,27 @@ e = c.sign(e)
 # Set the open callback
 c.on :connect do |event|
   puts 'Publish event...'
-  c.publish(e)
 end
 
 # Set the response callback
-c.on :message do |event|
-  puts "Response: #{event}"
+c.on :ok do |event|
+  puts "Event id: #{event.id}"
+  puts "Accepted: #{event.success}"
+  puts "Message: #{event.message}"
 end
 
 # Connect and send the event
 c.connect
 c.publish(e)
-c.stop
+# Do more things
+c.close
 
 # - - - - - - - - - - - - - -
 # Compact sync mode
 
 c.connect
 c.publish_and_wait(e)
-c.stop
+c.close
 
 ```
 
@@ -322,9 +324,24 @@ filter = Nostr::Filter.new(
   since: Time.now - (60*60*24), # 24 hours ago
   limit: 10
 )
-c.on :message do |message|
-  puts ">> #{message}"
+
+c.on :connect do |message|
+  puts "Connected!"
 end
+
+c.on :event do |message|
+  puts ">> #{message.content}"
+end
+
+c.on :eose do |message|
+  puts "Finished subscription #{message.subscription_id}"
+  c.close
+end
+
+c.on :close do |message|
+  puts "Connection closed"
+end
+
 c.subscribe(filter: filter)
 c.connect
 ```

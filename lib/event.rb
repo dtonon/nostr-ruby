@@ -23,7 +23,8 @@ module Nostr
       sig: nil,
       pow: nil,
       delegation: nil,
-      recipient: nil
+      recipient: nil,
+      subscription_id: nil
     )
       @pubkey = pubkey
       @created_at = created_at ? created_at : Time.now.utc.to_i
@@ -53,6 +54,10 @@ module Nostr
         instance_variable_set("@#{attribute}", value)
         reset! unless attribute == :id || attribute == :sig
       end
+    end
+
+    def type
+      "EVENT"
     end
 
     def content=(content)
@@ -170,6 +175,25 @@ module Nostr
       end
 
       true
+    end
+
+    def self.from_message(message)
+      subscription_id = message[1]
+      event_data = message[2]
+
+      event = new(
+        subscription_id: subscription_id,
+        kind: event_data["kind"],
+        pubkey: event_data["pubkey"],
+        created_at: event_data["created_at"],
+        tags: event_data["tags"],
+        content: event_data["content"],
+        id: event_data["id"],
+        sig: event_data["sig"],
+        pow: event_data["nonce"]&.last&.to_i
+      )
+      raise ArgumentError, "Event is not valid" unless event.valid?
+      return event
     end
 
   private

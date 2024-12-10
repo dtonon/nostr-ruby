@@ -17,6 +17,7 @@ require_relative 'event'
 require_relative 'filter'
 require_relative 'signer'
 require_relative 'client'
+require_relative 'message_handler'
 
 module Nostr
 

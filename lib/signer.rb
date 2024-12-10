@@ -28,7 +28,6 @@ module Nostr
       raise ArgumentError, "Pubkey doesn't match the private key" unless event.pubkey == @public_key
 
       if event.kind == Nostr::Kind::DIRECT_MESSAGE
-        puts "event.inspect => #{event.inspect}"
         event.content = CryptoTools.aes_256_cbc_encrypt(@private_key, event.recipient, event.content)
       end
 
