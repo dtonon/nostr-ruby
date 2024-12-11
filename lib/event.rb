@@ -23,7 +23,6 @@ module Nostr
       sig: nil,
       pow: nil,
       delegation: nil,
-      recipient: nil,
       subscription_id: nil
     )
       @pubkey = pubkey
@@ -37,14 +36,6 @@ module Nostr
       @pow = pow
       @delegation = delegation
 
-      if @kind == Nostr::Kind::DIRECT_MESSAGE
-        if recipient
-          @recipient = recipient
-          @tags << ["p", recipient]
-        else
-          @recipient = @tags.select{|t| t[0] == "p"}.first[1]
-        end
-      end
     end
 
     # Create setter methods for each attribute name
@@ -63,15 +54,6 @@ module Nostr
     def content=(content)
       return if @content == content
       @content = content
-      reset!
-    end
-
-    def recipient=(recipient)
-      return if @recipient == recipient
-      @tags = @tags.delete_if { |t| t[0] == "p" && t[1] == @recipient }
-      @recipient = recipient
-      @tags << ["p", @recipient]
-      @content = nil
       reset!
     end
 
@@ -148,7 +130,6 @@ module Nostr
       @errors << "Signature must be a string" if @sig && !@sig.is_a?(String)
       @errors << "POW must be an integer" if @pow && !@pow.is_a?(Integer)
       @errors << "Delegation must be an array" if @delegation && !@delegation.is_a?(Array)
-      @errors << "Recipient must be a string" if @recipient && !@recipient.is_a?(String)
 
       if @errors.any?
         raise ValidationError, @errors.join(", ")

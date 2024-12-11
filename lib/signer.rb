@@ -28,7 +28,8 @@ module Nostr
       raise ArgumentError, "Pubkey doesn't match the private key" unless event.pubkey == @public_key
 
       if event.kind == Nostr::Kind::DIRECT_MESSAGE
-        event.content = CryptoTools.aes_256_cbc_encrypt(@private_key, event.recipient, event.content)
+        dm_recipient = event.tags.select{|t| t[0] == "p"}.first[1]
+        event.content = CryptoTools.aes_256_cbc_encrypt(@private_key, dm_recipient, event.content)
       end
 
       if event.delegation
@@ -65,7 +66,8 @@ module Nostr
       when Nostr::Kind::DIRECT_MESSAGE
         data = event.content.split('?iv=')[0]
         iv = event.content.split('?iv=')[1]
-        event.content = CryptoTools.aes_256_cbc_decrypt(@private_key, event.recipient, data, iv)
+        dm_recipient = event.tags.select{|t| t[0] == "p"}.first[1]
+        event.content = CryptoTools.aes_256_cbc_decrypt(@private_key, dm_recipient, data, iv)
         event
       else
         raise "Unable to decrypt a kind #{event.kind} event"

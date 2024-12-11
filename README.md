@@ -136,7 +136,6 @@ e = Nostr::Event.new(
   content: ...,
   pow: ...,
   delegation: ...,
-  recipient: ...,
 )
 
 # Sign the event
@@ -279,14 +278,6 @@ delegatee.sign(e)
 ### Send a direct message
 Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
 ```ruby
-recipient = "npub1ul0dn02zulr5lnryvktzhyvm0m7d2a62c6l29tntsxev42w56tnqksrtfu"
-
-e = Nostr::Event.new(
-  kind: Nostr::Kind::DIRECT_MESSAGE,
-  pubkey: c.public_key,
-  recipient: Nostr::Bech32.decode(recipient)[:data],
-  content: "Hello Alice!"
-)
 
 e = Nostr::Event.new(
   kind: Nostr::Kind::DIRECT_MESSAGE,
