@@ -9,7 +9,9 @@ Gem::Specification.new do |s|
   s.authors       = ['Daniele Tonon']
   s.homepage      = 'https://github.com/dtonon/nostr-ruby'
   s.licenses      = ['MIT']
-  s.files         = Dir.glob('{bin/*,lib/**/*,[A-Z]*}')
+  s.files = `git ls-files -z`.split("\x0").reject do |f|
+    f.match(%r{^(test|spec|features)/})
+  end
   s.platform      = Gem::Platform::RUBY
   s.require_paths = ['lib']
 
