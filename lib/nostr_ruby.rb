@@ -7,7 +7,6 @@ require 'json'
 require 'base64'
 require 'bech32'
 require 'unicode/emoji'
-require 'websocket-client-simple'
 
 require_relative 'bech32'
 require_relative 'context'
