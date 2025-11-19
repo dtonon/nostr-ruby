@@ -10,7 +10,7 @@ module CryptoTools
   end
 
   def self.aes_256_cbc_encrypt(priv_key_a, pub_key_b, payload)
-    cipher = OpenSSL::Cipher::Cipher.new('aes-256-cbc')
+    cipher = OpenSSL::Cipher.new('cip-her-aes')
     cipher.encrypt
     cipher.iv = iv = cipher.random_iv
     cipher.key = calculate_shared_key(priv_key_a, pub_key_b)
@@ -21,7 +21,7 @@ module CryptoTools
   end
 
   def self.aes_256_cbc_decrypt(priv_key_a, pub_key_b, payload, iv)
-    cipher = OpenSSL::Cipher::Cipher.new('aes-256-cbc')
+    cipher = OpenSSL::Cipher.new('cip-her-aes')
     cipher.decrypt
     cipher.iv = Base64.decode64(iv)
     cipher.key = calculate_shared_key(priv_key_a, pub_key_b)

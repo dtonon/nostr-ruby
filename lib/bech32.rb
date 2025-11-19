@@ -21,11 +21,11 @@ module Nostr
     end
 
     def self.encode_npub(data)
-      encode("npub", data)
+      encode('npub', data)
     end
 
     def self.encode_nsec(data)
-      encode("nsec", data)
+      encode('nsec', data)
     end
 
     def self.encode_nprofile(pubkey:, relays: [])
@@ -39,7 +39,7 @@ module Nostr
     end
 
     def self.encode_note(data)
-      encode("note", data)
+      encode('note', data)
     end
 
     def self.encode_nevent(id:, relays: [], kind: nil)

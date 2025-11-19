@@ -6,9 +6,7 @@ module Nostr
   class Client
     include EventWizard
 
-    attr_reader :signer
-    attr_reader :relay
-    attr_reader :subscriptions
+    attr_reader :signer, :relay, :subscriptions
 
 
     def initialize(signer: nil, private_key: nil, relay: nil, context: Context.new(timeout: 5))
@@ -40,11 +38,11 @@ module Nostr
         when :message
           parsed_data = Nostr::MessageHandler.handle(msg[:data])
           emit :message, parsed_data
-          emit :event, parsed_data if parsed_data.type == "EVENT"
-          emit :ok, parsed_data if parsed_data.type == "OK"
-          emit :eose, parsed_data if parsed_data.type == "EOSE"
-          emit :closed, parsed_data if parsed_data.type == "CLOSED"
-          emit :notice, parsed_data if parsed_data.type == "NOTICE"
+          emit :event, parsed_data if parsed_data.type == 'EVENT'
+          emit :ok, parsed_data if parsed_data.type == 'OK'
+          emit :eose, parsed_data if parsed_data.type == 'EOSE'
+          emit :closed, parsed_data if parsed_data.type == 'CLOSED'
+          emit :notice, parsed_data if parsed_data.type == 'NOTICE'
         when :error
           emit :error, msg[:message]
         when :close
@@ -110,9 +108,7 @@ module Nostr
       end
 
       # Wait for the connection to be established or for the context to be canceled
-      if context
-        context.wait { @running }
-      end
+      context&.wait { @running }
 
     end
 
@@ -123,7 +119,7 @@ module Nostr
     def close
       @running = false
       EM.next_tick do
-        @ws_client.close if @ws_client
+        @ws_client&.close
         EM.add_timer(0.1) do
           EM.stop if EM.reactor_running?
         end
@@ -132,8 +128,9 @@ module Nostr
 
     def publish(event)
       return false unless running?
+
       @outbound_channel.push(['EVENT', event.to_json].to_json)
-      return true
+      true
     end
 
     def publish_and_wait(event, context: @context, close_on_finish: false)
@@ -152,7 +149,7 @@ module Nostr
 
       @inbound_channel.subscribe do |message|
         parsed_data = Nostr::MessageHandler.handle(message[:data])
-        if parsed_data.type == "OK" && parsed_data.event_id == event.id
+        if parsed_data.type == 'OK' && parsed_data.event_id == event.id
           response = parsed_data
           @response_condition.signal
         end
@@ -166,18 +163,18 @@ module Nostr
 
     def subscribe(subscription_id: SecureRandom.hex, filter: Filter.new)
       @subscriptions[subscription_id] = filter
-      @outbound_channel.push(["REQ", subscription_id, filter.to_h].to_json)
+      @outbound_channel.push(['REQ', subscription_id, filter.to_h].to_json)
       @subscriptions[subscription_id]
       subscription_id
     end
 
     def unsubscribe(subscription_id)
       @subscriptions.delete(subscription_id)
-      @outbound_channel.push(["CLOSE", subscription_id].to_json)
+      @outbound_channel.push(['CLOSE', subscription_id].to_json)
     end
 
     def unsubscribe_all
-      @subscriptions.each{|s| unsubscribe(s[0])}
+      @subscriptions.each { |s| unsubscribe(s[0]) }
     end
 
   end

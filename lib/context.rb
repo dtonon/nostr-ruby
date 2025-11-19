@@ -8,9 +8,7 @@ class Context
     @condition = ConditionVariable.new
 
     # Start a timer if a timeout is specified
-    if @timeout
-      @start_time = Time.now
-    end
+    @start_time = Time.now if @timeout
   end
 
   def cancel
@@ -31,9 +29,8 @@ class Context
     reset # Reset the context state before waiting
     loop do
       break if block.call
-      if timed_out?
-        raise StandardError.new("Operation timed out after #{timeout} seconds")
-      end
+      raise StandardError, "Operation timed out after #{timeout} seconds" if timed_out?
+
       sleep(0.1) # Sleep briefly to avoid busy-waiting
     end
   end

@@ -2,19 +2,19 @@ module Nostr
   class MessageHandler
     def self.handle(message)
 
-      message = JSON.parse(message) rescue ["?", message]
+      message = JSON.parse(message) rescue ['?', message]
       type = message[0]
-      strategy_class = case type
-        when 'EVENT' then EventMessageStrategy
-        when 'OK' then OkMessageStrategy
-        when 'EOSE' then EoseMessageStrategy
-        when 'CLOSED' then ClosedMessageStrategy
-        when 'NOTICE' then NoticeMessageStrategy
-        else UnknownMessageStrategy
-      end
+      strategy_class =  case type
+                        when 'EVENT' then EventMessageStrategy
+                        when 'OK' then OkMessageStrategy
+                        when 'EOSE' then EoseMessageStrategy
+                        when 'CLOSED' then ClosedMessageStrategy
+                        when 'NOTICE' then NoticeMessageStrategy
+                        else UnknownMessageStrategy
+                        end
 
       processed_data = strategy_class.new(message).process
-      type == "EVENT" ? processed_data : ParsedData.new(processed_data)
+      type == 'EVENT' ? processed_data : ParsedData.new(processed_data)
 
     end
   end
