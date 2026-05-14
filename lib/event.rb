@@ -13,6 +13,9 @@ module Nostr
 
     class ValidationError < StandardError; end
 
+    # Shape of a NIP-04 payload: base64?iv=base64
+    NIP04_PAYLOAD_FORMAT = /\A[A-Za-z0-9+\/]+={0,2}\?iv=[A-Za-z0-9+\/]+={0,2}\z/
+
     def initialize(
       kind:,
       pubkey: nil,
@@ -126,6 +129,11 @@ module Nostr
       @errors << "Tags must be an array" unless @tags.is_a?(Array)
 
       @errors << "Content must be a string" if @content && !@content.is_a?(String)
+
+      # Guard against signing (and so publishing) a plaintext direct message
+      if @kind == Nostr::Kind::DIRECT_MESSAGE && !@content.to_s.match?(NIP04_PAYLOAD_FORMAT)
+        @errors << "Kind 4 content must be NIP-04 encrypted"
+      end
       @errors << "ID must be a string" if @id && !@id.is_a?(String)
       @errors << "Signature must be a string" if @sig && !@sig.is_a?(String)
       @errors << "POW must be an integer" if @pow && !@pow.is_a?(Integer)

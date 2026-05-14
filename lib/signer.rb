@@ -27,11 +27,6 @@ module Nostr
 
       raise ArgumentError, "Pubkey doesn't match the private key" unless event.pubkey == @public_key
 
-      if event.kind == Nostr::Kind::DIRECT_MESSAGE
-        dm_recipient = event.tags.select{|t| t[0] == "p"}.first[1]
-        event.content = CryptoTools.aes_256_cbc_encrypt(@private_key, dm_recipient, event.content)
-      end
-
       if event.delegation
         event.tags << event.delegation
       end
@@ -61,17 +56,26 @@ module Nostr
       event
     end
 
-    def decrypt(event)
-      case event.kind
-      when Nostr::Kind::DIRECT_MESSAGE
-        data = event.content.split('?iv=')[0]
-        iv = event.content.split('?iv=')[1]
-        dm_recipient = event.tags.select{|t| t[0] == "p"}.first[1]
-        event.content = CryptoTools.aes_256_cbc_decrypt(@private_key, dm_recipient, data, iv)
-        event
-      else
-        raise "Unable to decrypt a kind #{event.kind} event"
-      end
+    # NIP-04, deprecated in favor of NIP-17
+    def nip04_encrypt(plaintext, counterparty_pubkey)
+      CryptoTools.nip04_encrypt(@private_key, counterparty_pubkey, plaintext)
+    end
+
+    # The counterparty is the sender's pubkey for received messages,
+    # the recipient's one for sent messages
+    def nip04_decrypt(payload, counterparty_pubkey)
+      CryptoTools.nip04_decrypt(@private_key, counterparty_pubkey, payload)
+    end
+
+    # Build, encrypt and sign a NIP-04 direct message in one step
+    def nip04_dm(plaintext, recipient_pubkey)
+      event = Nostr::Event.new(
+        kind: Nostr::Kind::DIRECT_MESSAGE,
+        pubkey: @public_key,
+        tags: [["p", recipient_pubkey]],
+        content: nip04_encrypt(plaintext, recipient_pubkey)
+      )
+      sign(event)
     end
 
     def generate_delegation_tag(to:, conditions:)

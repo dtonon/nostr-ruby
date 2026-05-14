@@ -278,14 +278,23 @@ delegatee.sign(e)
 ### Send a direct message
 Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
 ```ruby
+recipient_pubkey = Nostr::Bech32.decode(recipient_npub)[:data]
 
+# Build, encrypt and sign in one step
+e = c.nip04_dm("Hello Alice!", recipient_pubkey)
+
+# Or encrypt explicitly and build the event yourself
 e = Nostr::Event.new(
   kind: Nostr::Kind::DIRECT_MESSAGE,
   pubkey: c.public_key,
-  tags: [["p", Nostr::Bech32.decode(recipient)[:data]]],
-  content: "Hello Alice!"
+  tags: [["p", recipient_pubkey]],
+  content: c.nip04_encrypt("Hello Alice!", recipient_pubkey)
 )
+c.sign(e)
 ```
+
+Note: an event of kind 4 with plaintext content fails validation at signing
+time, so it cannot be accidentally published unencrypted.
 
 ### Decrypt a direct message
 Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
@@ -301,8 +310,9 @@ payload = {
 }
 e = Nostr::Event.new(**payload)
 
-c.decrypt(e)
-puts e.content
+# The counterparty is the sender's pubkey for received messages,
+# the recipient's one for sent messages
+c.nip04_decrypt(e.content, e.pubkey)
 => "Hello Alice!"
 ```
 
