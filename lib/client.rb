@@ -78,7 +78,7 @@ module Nostr
     end
 
     def generate_delegation_tag(to:, conditions:)
-      signer.generate_delegation_tag(to, conditions)
+      signer.generate_delegation_tag(to: to, conditions: conditions)
     end
 
     def connect(context: @context)
