@@ -1,6 +1,8 @@
 require_relative 'version'
 require_relative 'crypto_tools'
 
+require 'openssl'
+require 'securerandom'
 require 'ecdsa'
 require 'schnorr'
 require 'json'
