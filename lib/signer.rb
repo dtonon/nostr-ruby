@@ -56,6 +56,15 @@ module Nostr
       event
     end
 
+    # The counterparty defaults to self, e.g. for private notes
+    def nip44_encrypt(plaintext, counterparty_pubkey = nil)
+      CryptoTools.nip44_encrypt(conversation_key(counterparty_pubkey || @public_key), plaintext)
+    end
+
+    def nip44_decrypt(payload, counterparty_pubkey = nil)
+      CryptoTools.nip44_decrypt(conversation_key(counterparty_pubkey || @public_key), payload)
+    end
+
     # NIP-04, deprecated in favor of NIP-17
     def nip04_encrypt(plaintext, counterparty_pubkey)
       CryptoTools.nip04_encrypt(@private_key, counterparty_pubkey, plaintext)
@@ -87,6 +96,14 @@ module Nostr
         conditions,
         signature
       ]
+    end
+
+    private
+
+    # ECDH + HKDF is relatively expensive, cache per counterparty
+    def conversation_key(pubkey)
+      @conversation_keys ||= {}
+      @conversation_keys[pubkey] ||= CryptoTools.nip44_conversation_key(@private_key, pubkey)
     end
 
   end

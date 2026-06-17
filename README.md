@@ -275,6 +275,24 @@ e = Nostr::Event.new(
 
 delegatee.sign(e)
 ```
+### Encrypt and decrypt with NIP-44
+
+```ruby
+# Encrypt to a counterparty
+payload = c.nip44_encrypt("A private message", counterparty_pubkey)
+
+# Decrypt; the counterparty is the sender's pubkey for received
+# payloads, the recipient's one for sent payloads
+c.nip44_decrypt(payload, counterparty_pubkey)
+=> "A private message"
+
+# Without a counterparty the encryption is to self,
+# useful for private data like application settings or notes
+payload = c.nip44_encrypt("A note to myself")
+c.nip44_decrypt(payload)
+=> "A note to myself"
+```
+
 ### Send a direct message
 Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
 ```ruby

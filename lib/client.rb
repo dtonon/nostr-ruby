@@ -73,6 +73,14 @@ module Nostr
       signer.sign(event)
     end
 
+    def nip44_encrypt(plaintext, counterparty_pubkey = nil)
+      signer.nip44_encrypt(plaintext, counterparty_pubkey)
+    end
+
+    def nip44_decrypt(payload, counterparty_pubkey = nil)
+      signer.nip44_decrypt(payload, counterparty_pubkey)
+    end
+
     def nip04_encrypt(plaintext, counterparty_pubkey)
       signer.nip04_encrypt(plaintext, counterparty_pubkey)
     end
