@@ -73,8 +73,14 @@ module CryptoTools
 
     def secp256k1_ecdh(private_key, public_key)
       group = ECDSA::Group::Secp256k1
-      point = ECDSA::Format::PointOctetString.decode(["02#{public_key}"].pack('H*'), group)
-      shared_point = point.multiply_by_scalar(private_key.to_i(16))
+      scalar = private_key.to_i(16)
+      raise Error, "Invalid private key" unless scalar.between?(1, group.order - 1)
+      begin
+        point = ECDSA::Format::PointOctetString.decode(["02#{public_key}"].pack('H*'), group)
+      rescue ECDSA::Format::DecodeError
+        raise Error, "Invalid public key"
+      end
+      shared_point = point.multiply_by_scalar(scalar)
       # Only the x coordinate is used, per NIP-44 (unhashed ECDH output)
       ECDSA::Format::IntegerOctetString.encode(shared_point.x, 32)
     end

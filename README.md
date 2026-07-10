@@ -26,6 +26,15 @@ Or install it yourself as:
 $ gem install nostr_ruby
 ```
 
+## Tests
+
+The NIP-44 implementation is tested against the [official test vectors](https://github.com/paulmillr/nip44):
+
+```shell
+$ ruby test/nip44_test.rb
+$ ruby test/signer_test.rb
+```
+
 ## Usage
 
 ### Manage keys
