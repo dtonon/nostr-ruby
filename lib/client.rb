@@ -71,12 +71,28 @@ module Nostr
       signer.sign(event)
     end
 
-    def decrypt(event)
-      signer.decrypt(event)
+    def nip44_encrypt(plaintext, counterparty_pubkey = nil)
+      signer.nip44_encrypt(plaintext, counterparty_pubkey)
+    end
+
+    def nip44_decrypt(payload, counterparty_pubkey = nil)
+      signer.nip44_decrypt(payload, counterparty_pubkey)
+    end
+
+    def nip04_encrypt(plaintext, counterparty_pubkey)
+      signer.nip04_encrypt(plaintext, counterparty_pubkey)
+    end
+
+    def nip04_decrypt(payload, counterparty_pubkey)
+      signer.nip04_decrypt(payload, counterparty_pubkey)
+    end
+
+    def nip04_dm(plaintext, recipient_pubkey)
+      signer.nip04_dm(plaintext, recipient_pubkey)
     end
 
     def generate_delegation_tag(to:, conditions:)
-      signer.generate_delegation_tag(to, conditions)
+      signer.generate_delegation_tag(to: to, conditions: conditions)
     end
 
     def connect(context: @context)

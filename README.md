@@ -26,6 +26,15 @@ Or install it yourself as:
 $ gem install nostr_ruby
 ```
 
+## Tests
+
+The NIP-44 implementation is tested against the [official test vectors](https://github.com/paulmillr/nip44):
+
+```shell
+$ ruby test/nip44_test.rb
+$ ruby test/signer_test.rb
+```
+
 ## Usage
 
 ### Manage keys
@@ -275,17 +284,44 @@ e = Nostr::Event.new(
 
 delegatee.sign(e)
 ```
+### Encrypt and decrypt with NIP-44
+
+```ruby
+# Encrypt to a counterparty
+payload = c.nip44_encrypt("A private message", counterparty_pubkey)
+
+# Decrypt; the counterparty is the sender's pubkey for received
+# payloads, the recipient's one for sent payloads
+c.nip44_decrypt(payload, counterparty_pubkey)
+=> "A private message"
+
+# Without a counterparty the encryption is to self,
+# useful for private data like application settings or notes
+payload = c.nip44_encrypt("A note to myself")
+c.nip44_decrypt(payload)
+=> "A note to myself"
+```
+
 ### Send a direct message
 Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
 ```ruby
+recipient_pubkey = Nostr::Bech32.decode(recipient_npub)[:data]
 
+# Build, encrypt and sign in one step
+e = c.nip04_dm("Hello Alice!", recipient_pubkey)
+
+# Or encrypt explicitly and build the event yourself
 e = Nostr::Event.new(
   kind: Nostr::Kind::DIRECT_MESSAGE,
   pubkey: c.public_key,
-  tags: [["p", Nostr::Bech32.decode(recipient)[:data]]],
-  content: "Hello Alice!"
+  tags: [["p", recipient_pubkey]],
+  content: c.nip04_encrypt("Hello Alice!", recipient_pubkey)
 )
+c.sign(e)
 ```
+
+Note: an event of kind 4 with plaintext content fails validation at signing
+time, so it cannot be accidentally published unencrypted.
 
 ### Decrypt a direct message
 Warning: This uses NIP-04, that will be deprecated in favor of NIP-17
@@ -301,8 +337,9 @@ payload = {
 }
 e = Nostr::Event.new(**payload)
 
-c.decrypt(e)
-puts e.content
+# The counterparty is the sender's pubkey for received messages,
+# the recipient's one for sent messages
+c.nip04_decrypt(e.content, e.pubkey)
 => "Hello Alice!"
 ```
 
