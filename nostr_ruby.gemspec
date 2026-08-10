@@ -9,14 +9,16 @@ Gem::Specification.new do |s|
   s.authors       = ['Daniele Tonon']
   s.homepage      = 'https://github.com/dtonon/nostr-ruby'
   s.licenses      = ['MIT']
-  s.files         = Dir.glob('{bin/*,lib/**/*,[A-Z]*}')
+  s.files = `git ls-files -z`.split("\x0").reject do |f|
+    f.match(%r{^(test|spec|features)/})
+  end
   s.platform      = Gem::Platform::RUBY
   s.require_paths = ['lib']
 
-  s.add_dependency 'base64', '~> 0.1.1'
-  s.add_dependency 'bech32', '~> 1.4.0'
-  s.add_dependency 'bip-schnorr', '~> 0.4.0'
-  s.add_dependency 'json', '~> 2.6.2'
-  s.add_dependency 'unicode-emoji', '~> 3.3.1'
-  s.add_dependency 'faye-websocket', '~> 0.11'
+  s.add_dependency 'base64', '>= 0.3.0', '< 0.4.0'
+  s.add_dependency 'bech32', '>= 1.4.0', '< 2.0'
+  s.add_dependency 'bip-schnorr', '>= 0.4.0', '< 1.0'
+  s.add_dependency 'faye-websocket', '>= 0.11', '< 1.0'
+  s.add_dependency 'json', '>= 2.6.2', '< 3.0'
+  s.add_dependency 'unicode-emoji', '>= 3.3.1', '< 5.0'
 end

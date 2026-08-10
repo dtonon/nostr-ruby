@@ -2,7 +2,7 @@ module Nostr
   class Event
     include CryptoTools
 
-    ATTRIBUTES = [:kind, :pubkey, :created_at, :tags, :content, :id, :sig, :pow, :delegation, :recipient]
+    ATTRIBUTES = %i[kind pubkey created_at tags content id sig pow delegation recipient].freeze
 
     # Create attr_reader for each attribute name
     ATTRIBUTES.each do |attribute|
@@ -29,7 +29,7 @@ module Nostr
       subscription_id: nil
     )
       @pubkey = pubkey
-      @created_at = created_at ? created_at : Time.now.utc.to_i
+      @created_at = created_at || Time.now.utc.to_i
       @kind = kind
       @tags = tags
       @content = content
@@ -38,6 +38,7 @@ module Nostr
 
       @pow = pow
       @delegation = delegation
+      @subscription_id = subscription_id
 
     end
 
@@ -45,26 +46,28 @@ module Nostr
     ATTRIBUTES.each do |attribute|
       define_method("#{attribute}=") do |value|
         return if instance_variable_get("@#{attribute}") == value
+
         instance_variable_set("@#{attribute}", value)
-        reset! unless attribute == :id || attribute == :sig
+        reset! unless %i[id sig].include?(attribute)
       end
     end
 
     def type
-      "EVENT"
+      'EVENT'
     end
 
     def content=(content)
       return if @content == content
+
       @content = content
       reset!
     end
 
-    def has_tag?(tag)
+    def tag?(tag)
       @tags.each_slice(2).any? { |e| e.first == tag }
     end
 
-    def to_json
+    def to_json(*_args)
       {
         'kind': @kind,
         'pubkey': @pubkey,
@@ -77,11 +80,11 @@ module Nostr
     end
 
     def match_pow_difficulty?
-      self.match_pow_difficulty?(@id, pow)
+      match_pow_difficulty?(@id, pow)
     end
 
     def self.match_pow_difficulty?(event_id, pow)
-      pow.nil? || pow == [event_id].pack("H*").unpack("B*")[0].index('1')
+      pow.nil? || pow == [event_id].pack('H*').unpack1('B*')[0].index('1')
     end
 
     def serialize
@@ -99,48 +102,48 @@ module Nostr
       @errors = []
 
       # Check mandatory fields
-      @errors << "Kind is missing" if @kind.nil?
-      @errors << "Created at is missing" if @created_at.nil?
+      @errors << 'Kind is missing' if @kind.nil?
+      @errors << 'Created at is missing' if @created_at.nil?
 
       # Type validations
-      @errors << "Pubkey must be a string" if @pubkey && !@pubkey.is_a?(String)
-      @errors << "Kind must be an integer" unless @kind.is_a?(Integer)
+      @errors << 'Pubkey must be a string' if @pubkey && !@pubkey.is_a?(String)
+      @errors << 'Kind must be an integer' unless @kind.is_a?(Integer)
       if @created_at
         # Check if it's a valid Unix timestamp or can be converted to one
         begin
           timestamp = if @created_at.is_a?(Time)
-            @created_at.to_i
-          elsif @created_at.is_a?(Integer)
-            @created_at
-          elsif @created_at.respond_to?(:to_time)
-            @created_at.to_time.to_i
-          else
-            raise ArgumentError
-          end
+                        @created_at.to_i
+                      elsif @created_at.is_a?(Integer)
+                        @created_at
+                      elsif @created_at.respond_to?(:to_time)
+                        @created_at.to_time.to_i
+                      else
+                        raise ArgumentError
+                      end
 
           # Validate timestamp range
-          @errors << "Created at is not a valid timestamp" unless
+          @errors << 'Created at is not a valid timestamp' unless
             timestamp.is_a?(Integer) &&
             timestamp >= 0
         rescue
-          @errors << "Created at must be a valid datetime or Unix timestamp"
+          @errors << 'Created at must be a valid datetime or Unix timestamp'
         end
       end
-      @errors << "Tags must be an array" unless @tags.is_a?(Array)
+      @errors << 'Tags must be an array' unless @tags.is_a?(Array)
 
-      @errors << "Content must be a string" if @content && !@content.is_a?(String)
+      @errors << 'Content must be a string' if @content && !@content.is_a?(String)
 
       # Guard against signing (and so publishing) a plaintext direct message
       if @kind == Nostr::Kind::DIRECT_MESSAGE && !@content.to_s.match?(NIP04_PAYLOAD_FORMAT)
-        @errors << "Kind 4 content must be NIP-04 encrypted"
+        @errors << 'Kind 4 content must be NIP-04 encrypted'
       end
-      @errors << "ID must be a string" if @id && !@id.is_a?(String)
-      @errors << "Signature must be a string" if @sig && !@sig.is_a?(String)
-      @errors << "POW must be an integer" if @pow && !@pow.is_a?(Integer)
-      @errors << "Delegation must be an array" if @delegation && !@delegation.is_a?(Array)
+      @errors << 'ID must be a string' if @id && !@id.is_a?(String)
+      @errors << 'Signature must be a string' if @sig && !@sig.is_a?(String)
+      @errors << 'POW must be an integer' if @pow && !@pow.is_a?(Integer)
+      @errors << 'Delegation must be an array' if @delegation && !@delegation.is_a?(Array)
 
       if @errors.any?
-        raise ValidationError, @errors.join(", ")
+        raise ValidationError, @errors.join(', ')
       end
 
       true
@@ -155,12 +158,12 @@ module Nostr
 
       # Additional checks for a valid signed event
       @errors = []
-      @errors << "ID is missing" if @id.nil?
-      @errors << "Signature is missing" if @sig.nil?
-      @errors << "Pubkey is missing" if @pubkey.nil?
+      @errors << 'ID is missing' if @id.nil?
+      @errors << 'Signature is missing' if @sig.nil?
+      @errors << 'Pubkey is missing' if @pubkey.nil?
 
       if @errors.any?
-        raise ValidationError, @errors.join(", ")
+        raise ValidationError, @errors.join(', ')
       end
 
       true
@@ -172,20 +175,21 @@ module Nostr
 
       event = new(
         subscription_id: subscription_id,
-        kind: event_data["kind"],
-        pubkey: event_data["pubkey"],
-        created_at: event_data["created_at"],
-        tags: event_data["tags"],
-        content: event_data["content"],
-        id: event_data["id"],
-        sig: event_data["sig"],
-        pow: event_data["nonce"]&.last&.to_i
+        kind: event_data['kind'],
+        pubkey: event_data['pubkey'],
+        created_at: event_data['created_at'],
+        tags: event_data['tags'],
+        content: event_data['content'],
+        id: event_data['id'],
+        sig: event_data['sig'],
+        pow: event_data['nonce']&.last&.to_i
       )
-      raise ArgumentError, "Event is not valid" unless event.valid?
-      return event
+      raise ArgumentError, 'Event is not valid' unless event.valid?
+
+      event
     end
 
-  private
+    private
 
     def reset!
       @id = nil

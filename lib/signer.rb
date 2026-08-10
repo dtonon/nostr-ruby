@@ -6,9 +6,7 @@ module Nostr
 
     def initialize(private_key:)
       @private_key = private_key
-      unless @public_key
-        @public_key = Nostr::Key::get_public_key(@private_key)
-      end
+      @public_key ||= Nostr::Key::get_public_key(@private_key)
     end
 
     def nsec
@@ -21,11 +19,11 @@ module Nostr
 
     def sign(event)
 
-      raise ArgumentError, "Event is not signable" unless event.signable?
+      raise ArgumentError, 'Event is not signable' unless event.signable?
 
       event.pubkey = @public_key if event.pubkey.nil? || event.pubkey.empty?
 
-      raise ArgumentError, "Pubkey doesn't match the private key" unless event.pubkey == @public_key
+      raise ArgumentError, 'Pubkey doesn\'t match the private key' unless event.pubkey == @public_key
 
       if event.delegation
         event.tags << event.delegation
@@ -81,7 +79,7 @@ module Nostr
       event = Nostr::Event.new(
         kind: Nostr::Kind::DIRECT_MESSAGE,
         pubkey: @public_key,
-        tags: [["p", recipient_pubkey]],
+        tags: [['p', recipient_pubkey]],
         content: nip04_encrypt(plaintext, recipient_pubkey)
       )
       sign(event)
@@ -89,9 +87,11 @@ module Nostr
 
     def generate_delegation_tag(to:, conditions:)
       delegation_message_sha256 = Digest::SHA256.hexdigest("nostr:delegation:#{to}:#{conditions}")
-      signature = Schnorr.sign(Array(delegation_message_sha256).pack('H*'), Array(@private_key).pack('H*')).encode.unpack('H*')[0]
+      signature = Schnorr.sign(
+        Array(delegation_message_sha256).pack('H*'), Array(@private_key).pack('H*')
+      ).encode.unpack1('H*')[0]
       [
-        "delegation",
+        'delegation',
         @public_key,
         conditions,
         signature
